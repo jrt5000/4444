@@ -1,0 +1,3524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Four444</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="description" content="Personal habit tracking app">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Four444">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>✓</text></svg>">
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { margin: 0; padding: 0; overflow-x: hidden; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    const CheckCircle = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+    const Circle = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth={2} /></svg>;
+    const Calendar = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}/><line x1="16" y1="2" x2="16" y2="6" strokeWidth={2}/><line x1="8" y1="2" x2="8" y2="6" strokeWidth={2}/><line x1="3" y1="10" x2="21" y2="10" strokeWidth={2}/></svg>;
+    const TrendingUp = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" strokeWidth={2}/><polyline points="17 6 23 6 23 12" strokeWidth={2}/></svg>;
+    const Download = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
+    const ChevronLeft = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>;
+    const ChevronRight = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>;
+    const ChevronUp = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>;
+    const ChevronDown = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>;
+    const Play = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" strokeWidth={2}/></svg>;
+    const Pause = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" strokeWidth={2}/><rect x="14" y="4" width="4" height="16" strokeWidth={2}/></svg>;
+    const Square = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" strokeWidth={2}/></svg>;
+    const Grid = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" strokeWidth={2}/><rect x="14" y="3" width="7" height="7" strokeWidth={2}/><rect x="3" y="14" width="7" height="7" strokeWidth={2}/><rect x="14" y="14" width="7" height="7" strokeWidth={2}/></svg>;
+    const X = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" strokeWidth={2}/><line x1="6" y1="6" x2="18" y2="18" strokeWidth={2}/></svg>;
+    const Book = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
+    const Target = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth={2}/><circle cx="12" cy="12" r="6" strokeWidth={2}/><circle cx="12" cy="12" r="2" strokeWidth={2}/></svg>;
+    const ClipboardList = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
+    const Edit = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>;
+    const Plus = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" strokeWidth={2}/><line x1="5" y1="12" x2="19" y2="12" strokeWidth={2}/></svg>;
+    const Home = ({className}) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>;
+
+    function HabitTracker() {
+      const getLocalDateString = (date = new Date()) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const FIFTH_DAY_START = '2025-10-26'; // Starting point for counting fifth days
+
+      const [trackedData, setTrackedData] = useState(() => {
+        try {
+          const saved = localStorage.getItem('habitTrackerData288');
+          return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+          return {};
+        }
+      });
+      
+      const [taskOrder, setTaskOrder] = useState(() => {
+        try {
+          const saved = localStorage.getItem('habitTaskOrder');
+          return saved ? JSON.parse(saved) : [1, 11, 3, 2];
+        } catch (e) {
+          return [1, 11, 3, 2];
+        }
+      });
+      
+      const [customTaskNames, setCustomTaskNames] = useState(() => {
+        try {
+          const saved = localStorage.getItem('customTaskNames');
+          return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+          return {};
+        }
+      });
+      
+      const [editingTaskName, setEditingTaskName] = useState(null);
+      const [tempTaskName, setTempTaskName] = useState('');
+      
+      const [selectedDate, setSelectedDate] = useState(getLocalDateString());
+      const [viewMode, setViewMode] = useState('day');
+      const [calendarMonth, setCalendarMonth] = useState(new Date());
+      const [currentStartTimes, setCurrentStartTimes] = useState({});
+      const [currentEndTimes, setCurrentEndTimes] = useState({});
+      const [currentNotes, setCurrentNotes] = useState({});
+      const [dailyNote, setDailyNote] = useState('');
+      const [currentTimeBlock, setCurrentTimeBlock] = useState(0);
+      const [timers, setTimers] = useState({});
+      const [timerStartTimes, setTimerStartTimes] = useState({});
+      const [elapsedSeconds, setElapsedSeconds] = useState({});
+      const [showFinanceModal, setShowFinanceModal] = useState(false);
+      const financeTarget = 1500000;
+      const [currentFinanceData, setCurrentFinanceData] = useState({
+        emergencyFund: '',
+        lisa: '',
+        isa: '',
+        sipp: '',
+        gia: '',
+        creditCard: '',
+        mortgage: ''
+      });
+
+      const [goals, setGoals] = useState(() => {
+        try {
+          const saved = localStorage.getItem('goals');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            // Migrate old goal names to new ones
+            if (parsed['£2MN'] && !parsed['PPCF']) {
+              parsed['PPCF'] = parsed['£2MN'];
+              delete parsed['£2MN'];
+            }
+            if (parsed['R2SA'] && !parsed['PPCF']) {
+              parsed['PPCF'] = parsed['R2SA'];
+              delete parsed['R2SA'];
+              localStorage.setItem('goals', JSON.stringify(parsed));
+            }
+            return parsed;
+          }
+          return {
+            PPCF: { complete: false, note: '', completionDate: '' },
+            P1PN: { complete: false, note: '', completionDate: '' }
+          };
+        } catch (e) {
+          return {
+            PPCF: { complete: false, note: '', completionDate: '' },
+            P1PN: { complete: false, note: '', completionDate: '' }
+          };
+        }
+      });
+
+      const [books, setBooks] = useState(() => {
+        try {
+          const saved = localStorage.getItem('books');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            // If there are already books saved, return them
+            if (Object.keys(parsed).length > 0) {
+              return parsed;
+            }
+          }
+          
+          // Otherwise, populate with default books list
+          const defaultBooks = {};
+          const bookList = [
+"52 Pick-up by Elmore Leonard",
+"A Backward Glance O'er Travelled Roads by Walt Whitman",
+"A Bend in the River by VS Naipaul",
+"A Canticle for Leibowitz by Walter M Miller Jr",
+"A Clockwork Orange by Anthony Burgess",
+"A Connecticut Yankee in King Arthur's Court by Mark Twain",
+"A Dance to the Music of Time by Anthony Powell",
+"A Dark-Adapted Eye by Barbara Vine",
+"A Dry White Season by Andre Brink",
+"A Fairy Tale of New York by JP Donleavy",
+"A Far Cry from Kensington by Muriel Spark",
+"A Fatal inversion by Barbara Vine",
+"A Fine Balance by Rohinton Mistry",
+"A Flag for Sunrise by Robert Stone",
+"A Girl in Winter by Philip Larkin",
+"A Glastonbury Romance by John Cowper Powys",
+"A Good Man in Africa by William Boyd",
+"A Gun for Sale by Graham Greene",
+"A Handful of Dust by Evelyn Waugh",
+"A Heart So White by Javier Marias",
+"A High Wind in Jamaica by Richard Hughes",
+"A History of the World in 10 1/2 Chapters by Julian Barnes",
+"A House for Mr Biswas by VS Naipaul",
+"A Journey to the Centre of the Earth by Jules Verne",
+"A Kestrel for a Knave by Barry Hines",
+"A Kind of Loving by Stan Barstow",
+"A Legacy by Sybille Bedford",
+"A Long Long Way by Sebastian Barry",
+"A Lost Lady by Willa Cather",
+"A Married Man by Piers Paul Read",
+"A Month in the Country by JL Carr",
+"A Passage to India by E. M. Forster",
+"A Portrait of the Artist as a Young Man by James Joyce",
+"A Prayer for Owen Meany by John Irving",
+"A Princess of Mars by Edgar Rice Burroughs",
+"A Quiet Belief in Angels by RJ Ellory",
+"A Rage in Harlem by Chester Himes",
+"A Rich Full Death by Michael Dibdin",
+"A Room with a View by EM Forster",
+"A Season in Sinji by JL Carr",
+"A Sentimental Journey by Lawrence Sterne",
+"A Sport and a Pastime by James Salter",
+"A Study in Scarlet by Arthur Conan Doyle",
+"A Tale of a Tub by Jonathan Swift",
+"A Tale of Two Cities by Charles Dickens",
+"A Taste for Death by PD James",
+"A Thousand Acres by Jane Smiley",
+"A Time to be Born by Dawn Powell",
+"A Time to Kill by John Grisham",
+"A Town Like Alice by Nevil Shute",
+"A Voyage to Arcturus by David Lindsay",
+"Absolute Beginners by Colin MacInnes",
+"According to Queeney by Beryl Bainbridge",
+"Adam Bede by George Eliot",
+"Affinity by Sarah Waters",
+"After London; or, Wild England by Richard Jefferies",
+"Afternoon Men by Anthony Powell",
+"Air by Geoff Ryman",
+"Alberta and Jacob by Cora Sandel",
+"Ali and Nino by Kurban Said",
+"Alice's Adventures in Wonderland by Lewis Carroll",
+"All Quiet on the Western Front by Erich Maria Remarque",
+"All Souls Day by Cees Nooteboom",
+"All the Pretty Horses by Cormac McCarthy",
+"All the Wrong Places by James Fenton",
+"Alms for Oblivion by Simon Raven",
+"American Gods by Neil Gaiman",
+"American Pastoral by Philip Roth",
+"American Psycho by Bret Easton Ellis",
+"Amongst Women by John McGahern",
+"An American Tragedy by Theodore Dreiser",
+"An Enquiry Concerning Human Understanding by David Hume",
+"An Ice-Cream War by William Boyd",
+"An Introduction to English Poetry by James Fenton",
+"And Then There Were None by Agatha Christie",
+"Andersonville by MacKinlay Kantor",
+"Angel by Elizabeth Taylor",
+"Anglo-Saxon Attitudes by Angus Wilson",
+"Animal Farm by George Orwell",
+"Anna Karenina by Leo Tolstoy",
+"Anthills of the Savannah by Chinua Achebe",
+"Any Human Heart by William Boyd",
+"Areopagitica by John Milton",
+"Around the World in Eighty Days by Jules Verne",
+"Arturo's Island by Elsa Morante",
+"As I Lay Dying by William Faulkner",
+"Ascent by Jed Mercurio",
+"Asterix the Gaul by Rene Goscinny",
+"At Grand Central Station I Sat Down and Wept by Elizabeth Smart",
+"Atomised by Michel Houellebecq",
+"Atonement by Ian McEwan",
+"At-Swim-Two-Birds by Flann O'Brien",
+"Augustus Carp, Esq. by Himself: Being the Autobiography of a Really Good Man by Henry Howarth Bashford",
+"Austerlitz by WG Sebald",
+"Autobiography by Anthony Trollope",
+"Auto-da-Fe by Elias Canetti",
+"Babbitt by Sinclair Lewis",
+"Ballet Shoes by Noel Streatfield",
+"Barchester Towers by Anthony Trollope",
+"Bartleby the Scrivener by Herman Melville",
+"Beauty and Sadness by Yasunari Kawabata",
+"Before Lunch by Angela Thirkell",
+"Behind the Scenes at the Museum by Kate Atkinson",
+"Being Dead by Jim Crace",
+"Bel-Ami by Guy de Maupassant",
+"Belles Lettres Papers: A Novel by Charles Simmons",
+"Beloved by Toni Morrison",
+"Berlin Alexanderplatz by Alfred Döblin",
+"Beyond Black by Hilary Mantel",
+"Beyond Good and Evil by Friedrich Wilhelm Nietzsche",
+"Billy Liar by Keith Waterhouse",
+"Biographia Literaria by Samuel Taylor Coleridge",
+"Birdsong by Sebastian Faulks",
+"Black and Blue by Ian Rankin",
+"Black Beauty by Anna Sewell",
+"Black Mischief by Evelyn Waugh",
+"Black Sunday by Thomas Harris",
+"Blacklist by Sara Paretsky",
+"Bleak House by Charles Dickens",
+"Blindness by Jose Saramago",
+"Blood Meridian by Cormac McCarthy",
+"Blott on the Landscape by Tom Sharpe",
+"Bold as Love by Gwyneth Jones",
+"Bomber by Len Deighton",
+"Bones and Silence by Reginald Hill",
+"Bonjour Tristesse by Francoise Sagan",
+"Bouvard et Pécuchet by Gustave Flaubert",
+"Brave New World by Aldous Huxley",
+"Breakfast at Tiffany's by Truman Capote",
+"Breakfast of Champions by Kurt Vonnegut",
+"Breathing Lessons by Anne Tyler",
+"Brewster's Millions by Richard Greaves (George Barr McCutcheon)",
+"Bright Lights, Big City by Jay McInerney",
+"Buddenbrooks by Thomas Mann",
+"Burmese Days by George Orwell",
+"Cakes and Ale - Or, the Skeleton in the Cupboard by W Somerset Maugham",
+"Call it Sleep by Henry Roth",
+"Camp Concentration by Thomas M Disch",
+"Cancer Ward by Aleksandr Isayevich Solzhenitsyn",
+"Caprice by Ronald Firbank",
+"Captain Blood by Rafael Sabatini",
+"Carrie's War by Nina Bawden",
+"Casino Royale by Ian Fleming",
+"Castle Rackrent by Maria Edgeworth",
+"Cat's Eye by Margaret Atwood",
+"Changing Places by David Lodge",
+"Charade by John Mortimer",
+"Cheese by Willem Elsschot",
+"Cheri by Sidonie-Gabrielle Collette",
+"Childhood's End by Arthur C Clarke",
+"Christabel by Samuel Taylor Coleridge",
+"Chronicle in Stone by Ismael Kadare",
+"Civil Disobedience Henry David Thoreau",
+"Civilization and Its Discontents by Sigmund Freud",
+"Clarissa by Samuel Richardson",
+"Claudine a l'ecole by Sidonie-Gabrielle Colette",
+"Clayhanger by Arnold Bennett",
+"Cloud Atlas by David Mitchell",
+"Cold Comfort Farm by Stella Gibbons",
+"Cold Mountain by Charles Frazier",
+"Collected Plays by T. S. Eliot",
+"Collected Plays by William Butler Yeats",
+"Collected Poems by Emily Dickinson",
+"Collected Poems by Robert Frost",
+"Collected Poems by T. S. Eliot",
+"Collected Poems by W. H. Auden",
+"Collected Poems by William Butler Yeats",
+"Collected Short Stories by Lu Hsün",
+"Complete Works by William Shakespeare",
+"Confederates by Thomas Keneally",
+"Confessions by Jean Jacques Rousseau",
+"Confessions of Zeno by Italo Svevo",
+"Consider Phlebas by Iain M Banks",
+"Cop Hater by Ed McBain",
+"Count Belisarius by Robert Graves",
+"Couples by John Updike",
+"Covenant with Death by John Harris",
+"Cover Her Face by PD James",
+"Cranford by Elizabeth Gaskell",
+"Crash by JG Ballard",
+"Crime and Punishment by Fyodor Dostoevsky",
+"Crome Yellow by Aldous Huxley",
+"Cry, the Beloved Country by Alan Paton",
+"Cryptonomicon by Neal Stephenson",
+"Daniel Deronda by George Eliot",
+"Darkmans by Nicola Barker",
+"Darkness at Noon by Arthur Koestler",
+"Darkness Falls from the Air by Nigel Balchin",
+"Darwin's Radio by Greg Bear",
+"David Copperfield by Charles Dickens",
+"Day by AL Kennedy",
+"Day of the Triffids by John Wyndham",
+"De Niro's Game by Rawi Hage",
+"Dead Lagoon by Michael Dibdin",
+"Dead Souls by Nikolai Gogol",
+"Death and the Penguin by Andrey Kurkov",
+"Death at the President's Lodging by Michael Innes",
+"Death in Summer by William Trevor",
+"Death in Venice by Thomas Mann",
+"Death of a Hero by Richard Aldington",
+"Decline and Fall by Evelyn Waugh",
+"Deliverance by James Dickey",
+"Delta of Venus by Anais Nin",
+"Democracy in America by Alexis de Tocqueville",
+"Democratic Vistas by Walt Whitman",
+"Devil in a Blue Dress by Walter Mosley",
+"Dialogue Concerning the Two Chief World Systems by Galileo Galilei",
+"Diary of a Mad Old Man by Junichiro Tanizaki",
+"Diary of a Nobody by George Grossmith",
+"Dirty Tricks by Michael Dibdin",
+"Discourse on Method by René Descartes",
+"Disgrace by JM Coetzee",
+"Dissolution by CJ Sansom",
+"Do Androids Dream of Electric Sheep? by Philip K Dick",
+"Doctor Zhivago by Boris Pasternak",
+"Dolores Claiborne by Stephen King",
+"Dom Casmurro Joaquim by Maria Machado de Assis",
+"Dombey and Son by Charles Dickens",
+"Double Indemnity by James M Cain",
+"Dracula by Bram Stoker",
+"Dreamtigers by Jorge Luis Borges",
+"Earthly Powers by Anthony Burgess",
+"East Lynne by Ellen Wood",
+"East of Eden by John Steinbeck",
+"Effi Briest by Theodore Fontane",
+"Elmer Gantry by Sinclair Lewis",
+"Emma by Jane Austen",
+"Empire of the Sun by JG Ballard",
+"Endgame by Samuel Beckett",
+"Enduring Love by Ian McEwan",
+"Enemies, a Love Story by Isaac Bashevis Singer",
+"England, Their England by AG Macdonell",
+"Enigma by Robert Harris",
+"Ennui by Maria Edgeworth",
+"Epileptic by David B",
+"Epitaph for a Spy by Eric Ambler",
+"Erewhon by Samuel Butler",
+"Eugenie Grandet by Honore de Balzac",
+"Evelina by Fanny Burney",
+"Everything is Illuminated by Jonathon Safran Foer",
+"Excellent Women by Barbara Pym",
+"Exit Music by Ian Rankin",
+"Extinction by Thomas Bernhard",
+"Fair Stood the Wind for France by HE Bates",
+"Family Matters by Rohinton Mistry",
+"Fantomas by Marcel Allain and Pierre Souvestre",
+"Far From the Madding Crowd by Thomas Hardy",
+"Fatherland by Robert Harris",
+"Fathers and Sons by Ivan Turgenev",
+"Faust by Johann Wolfgang von Goethe",
+"Fight Club by Chuck Palahniuk",
+"Fingersmith by Sarah Waters",
+"Finnegans Wake by James Joyce",
+"Fireflies by Shiva Naipaul",
+"First Love by Ivan Turgenev",
+"Flashman by George MacDonald Fraser",
+"Flaubert's Parrot by Julian Barnes",
+"Flowers for Algernon by Daniel Keyes",
+"For Whom the Bell Tolls by Ernest Hemingway",
+"Foreign Affairs by Alison Lurie",
+"Fortunes of War by Olivia Manning",
+"Foucault's Pendulum by Umberto Eco",
+"Foundation by Isaac Asimov",
+"Four Essays from The Meaning of Truth by William James",
+"Frankenstein by Mary Shelley",
+"Friday the Rabbi Slept Late by Harry Kemelman",
+"From Here to Eternity by James Jones",
+"Frost in May by Antonia White",
+"Fun Home by Alison Bechdel",
+"G by John Berger",
+"Gargantua and Pantagruel by Francois Rabelais",
+"GB84 by David Peace",
+"Gentlemen Prefer Blondes by Anita Loos",
+"Germinal by Emile Zola",
+"Get Shorty by Elmore Leonard",
+"Gilead by Marilynne Robinson",
+"Giovanni's Room by James Baldwin",
+"Girlfriend in a Coma by Douglas Coupland",
+"Go Tell it on the Mountain by James Baldwin",
+"God's Bit of Wood by Ousmane Sembene",
+"Goldfinger by Ian Fleming",
+"Gone With the Wind by Margaret Mitchell",
+"Good Behaviour by Molly Keane",
+"Goodbye to Berlin by Christopher Isherwood",
+"Gorky Park by Martin Cruz Smith",
+"Gravity's Rainbow by Thomas Pynchon",
+"Great Apes by Will Self",
+"Great Expectations by Charles Dickens",
+"Green Mansions: A Romance of the Tropical Forest by WH Hudson",
+"Greenmantle by John Buchan",
+"Gulliver's Travels by Jonathan Swift",
+"Hamilton, Madison, and Jay. The Federalist Papers, edited by Clinton Rossiter.",
+"Handley Cross by RS Surtees",
+"Hangover Square by Patrick Hamilton",
+"Hard Revolution by George Pelecanos",
+"Hard Times by Charles Dickens",
+"Harry Potter and the Philosopher's Stone by JK Rowling",
+"Headlong Hall by Thomas Love Peacock",
+"Heart of Darkness by Joseph Conrad",
+"Heavy Weather by PG Wodehouse",
+"Hello Summer, Goodbye by Michael G Coney",
+"Herland by Charlotte Perkins Gilman",
+"Herzog by Saul Bellow",
+"Hideous Kinky by Esther Freud",
+"High Fidelity by Nick Hornby",
+"His Dark Materials by Philip Pullman",
+"History by Elsa Morante",
+"Home is where we start from by Douglas Winnicott",
+"House of Leaves by Mark Danielewski",
+"How Green was My Valley by Richard Llewellyn",
+"How Late it Was, How Late by James Kelman",
+"How the Dead Live by Will Self",
+"Howards End by EM Forster",
+"Huckleberry Finn by Mark Twain",
+"Humboldt's Gift by Saul Bellow",
+"Hunger by Knut Hamsun",
+"Hurrah for St Trinian's by Ronald Searle",
+"Hyperion by Dan Simmons",
+"I Am Legend by Richard Matheson",
+"I Capture the Castle by Dodie Smith",
+"I Served the King of England by Bohumil Hrabal",
+"I'll Go to Bed at Noon by Gerard Woodward",
+"If Not Now, When? by Primo Levi",
+"Illywhacker by Peter Carey",
+"In the Country of Last Things by Paul Auster",
+"Independence Day by Richard Ford",
+"Infinite Jest by David Foster Wallace",
+"Ingenious Pain by Andrew Miller",
+"Institute Benjamenta by Robert Walser",
+"Invisible Cities by Italo Calvino",
+"Invitation to the Waltz by Rosamond Lehmann",
+"Ivanhoe by Sir Walter Scott",
+"Jacques the Fatalist and his Master by Denis Diderot",
+"Jane Eyre by Charlotte Bronte",
+"Jimmy Corrigan, The Smarest Kid on Earth by Chris Ware",
+"Jonathan Strange & Mr Norrell by Susanna Clarke",
+"Joseph Andrews by Henry Fielding",
+"Journey into Fear by Eric Ambler",
+"Journey to the End of the Night by Louis-Ferdinand Celine",
+"Journey to the West by Wu Cheng-en",
+"Joy in the Morning by PG Wodehouse",
+"Jude the Obscure by Thomas Hardy",
+"Judgment in Stone by Ruth Rendell",
+"Julie, ou la Nouvelle Heloise by Jean-Jacques Rousseau",
+"July's People by Nadine Gordimer",
+"Jurassic Park by Michael Crichton",
+"Just William by Richmal Crompton",
+"Justine by Lawrence Durrell",
+"Kidnapped by Robert Louis Stevenson",
+"Kindred by Octavia Butler",
+"King James' bible",
+"King Solomon's Carpet by Barbara Vine",
+"King Solomon's Mines by H Rider Haggard",
+"Krapp's Last Tape by Samuel Beckett",
+"Kubla Khan by Samuel Taylor Coleridge",
+"L'Histoire de Gil Blas de Santillane (Gil Blas) Alain-René Lesage",
+"La Bete Humaine by Emile Zola",
+"La Comedie Humaine by Honore de Balzac",
+"La Condition Humaine by Andre Malraux",
+"LA Confidential by James Ellroy",
+"La Disparition by Georges Perec",
+"La Vie Mode d'emploi by Georges Perec",
+"Labyrinths by Jorge Luis Borges",
+"Lady Audley's Secret by Mary E Braddon",
+"Lady Chatterley's Lover by DH Lawrence",
+"Lake Wobegon Days by Garrison Keillor",
+"Lanark by Alastair Gray",
+"Lark Rise to Candleford by Flora Thompson",
+"Last Exit to Brooklyn by Hubert Selby Jr",
+"Last Seen Wearing by Colin Dexter",
+"Le Grand Meaulnes by Henri Alain-Fournier",
+"Le Pere Goriot by Honore de Balzac",
+"Les Enfants Terrible by Jean Cocteau",
+"Les Liaisons Dangereuses by Pierre-Ambroise-Francois Choderlos de Laclos",
+"Les Miserables by Victor Hugo",
+"Les Revenentes by Georges Perec",
+"Less Than Angels by Barbara Pym",
+"Leviathan by Thomas Hobbes",
+"Life and Fate by Vassily Grossman",
+"Light by M John Harrison",
+"Light Years by James Salter",
+"Little Dorrit by by Charles Dickens",
+"Little Women by Louisa May Alcott",
+"Live Flesh by Ruth Rendell",
+"Living by Henry Green",
+"Loitering with Intent by Muriel Spark",
+"Lolly Willowes by Sylvia Townsend Warner",
+"London Fields by Martin Amis",
+"Lonesome Dove by Larry McMurty",
+"Long Day's Journey into Night by Eugene O'Neill",
+"Look At Me by Anita Brookner",
+"Lord Jim by Joseph Conrad",
+"Lorna Doone by RD Blackmore",
+"Lost Souls by Poppy Z Brite",
+"Love for Lydia by HE Bates",
+"Love in a Cold Climate by Nancy Mitford",
+"Love in the Time of Cholera by Gabriel Garcia Marquez",
+"Love on the Dole by Walter Greenwood",
+"Love Story by Eric Segal",
+"Lucky Jim by Kingsley Amis",
+"Lush Life by Richard Price",
+"Lycidas by John Milton",
+"Madame Bovary by Gustave Flaubert",
+"Main Street by Sinclair Lewis",
+"Malice Aforethought by Francis Iles",
+"Malone Dies by Samuel Beckett",
+"Manon Lescaut by Abbe Prevost",
+"Manservant and Maidservant by Ivy Compton-Burnett",
+"Mansfield Park by Jane Austen",
+"Martin Chuzzlewit by Charles Dickens",
+"Martin Eden by Jack London",
+"Mary Barton by Elizabeth Gaskell",
+"Master and Commander by Patrick O'Brian",
+"Master Georgie by Beryl Bainbridge",
+"Maurice Guest by Henry Handel Richardson",
+"Maus by Art Spiegelman",
+"McTeague by Frank Norris",
+"Melmoth the Wanderer by Charles Maturin",
+"Memet my Hawk by Yasar Kemal",
+"Memoirs of a Gnostic Dwarf by David Madsen",
+"Memoirs of a Survivor by Doris Lessing",
+"Men at Arms by Evelyn Waugh",
+"Microserfs by Douglas Coupland",
+"Middlemarch by George Eliot",
+"Middlesex by Jeffrey Eugenides",
+"Midnight's Children by Salman Rushdie",
+"Millennium People by JG Ballard",
+"Misery by Stephen King",
+"Miss Smilla's Feeling for Snow by Peter Hoeg",
+"Mister Johnson by Joyce Cary",
+"Moby Dick by Herman Melville",
+"Molesworth by Geoffrey Willans and Ronald Searle",
+"Moll Flanders by Daniel Defoe",
+"Molloy by Samuel Beckett",
+"Money by Martin Amis",
+"Monkey by Wu Ch'eng-en",
+"Moo by Jane Smiley",
+"Moon over Africa by Pamela Kent",
+"More Die of Heartbreak by Saul Bellow",
+"Morvern Callar by Alan Warner",
+"Mother by Maxim Gorky",
+"Mother London by Michael Moorcock",
+"Motherless Brooklyn by Jonathan Lethem",
+"Mourning Becomes Electra by Eugene O'Neill",
+"Mr Blandings Builds His Dream House by Eric Hodgkins",
+"Mr Norris Changes Trains by Christopher Isherwood",
+"Mrs. Dalloway by Virginia Woolf",
+"Murder Must Advertise by Dorothy Le Sayers",
+"Music and Silence by Rose Tremain",
+"My Antonia by Willa Cather",
+"My Cousin Rachel by Daphne du Maurier",
+"My Name Is Asher Lev by Chaim Potok",
+"My Name is Red by Orhan Pamuk",
+"My New York Diary by Julie Doucet",
+"My Search for Warren Harding by Robert Plunkett",
+"Naked Lunch by William Burroughs",
+"Narziss and Goldmund by Hermann Hesse",
+"Native Son by Richard Wright",
+"Neuromancer by William Gibson",
+"New Grub Street by George Gissing",
+"News from Nowhere by William Morris",
+"Nice Work by David Lodge",
+"Nightmare Abbey by Thomas Love Peacock",
+"Nights at the Circus by Angela Carter",
+"Nightwood by Djuna Barnes",
+"Nineteen Eighty-Four by George Orwell",
+"Nineteen Seventy Four by David Peace",
+"Nineteen Seventy Seven by David Peace",
+"No Bed for Bacon by Caryl Brahms and SJ Simon",
+"No Country for Old Men by Cormac McCarthy",
+"No Orchids for Miss Blandish by James Hadley Chase",
+"Non-Stop by Brian W Aldiss",
+"North and South by Elizabeth Gaskell",
+"Northanger Abbey by Jane Austen",
+"Nostromo by Joseph Conrad",
+"Notes from the Underground by Fyodor Dostoevsky",
+"Novel on Yellow Paper by Stevie Smith",
+"Oblomov by Ivan Goncharov",
+"Of Human Bondage by Somerset Maugham",
+"Of Love & Hunger by Julian Maclaren-Ross",
+"Of Mice and Men by John Steinbeck",
+"Of the Nature of Things by Lucretius",
+"Office Politics by Wilfrid Sheed",
+"Oliver Twist by Charles Dickens",
+"On Beauty by Zadie Smith",
+"On Liberty by John Stuart Mill",
+"On the Morning of Christ's Nativity by John Milton",
+"One Day in the Life of Ivan Denisovtich by Alexandr Solzhenitsyn",
+"One Flew Over the Cuckoo's Nest by Ken Kesey",
+"One Hundred Years of Solitude by Gabriel Garcia Marquez",
+"One of Ours by Willa Cather",
+"Only Forward by Michael Marshall Smith",
+"Oranges Are Not the Only Fruit by Jeanette Winterson",
+"Orlando by Virginia Woolf",
+"Oroonoko, or The Royal Slave by Aphra Behn",
+"Oscar and Lucinda by Peter Carey",
+"Our Man in Havana by Graham Greene",
+"Our Mutual Friend by Charles Dickens",
+"Palace Walk by Naguib Mahfouz",
+"Pale Fire by Vladimir Nabokov",
+"Pamela by Samuel Richardson",
+"Parade's End by Ford Madox Ford",
+"Paradise Lost by John Milton",
+"Passing by Nella Larsen",
+"Patience and Sarah by Isabel Miller",
+"Peace in War by Miguel de Unamuno",
+"Penrod by Booth Tarkington",
+"Père Goriot by Honoré de Balzac",
+"Perfume by Patrick Suskind",
+"Personality by Andrew O'Hagan",
+"Persuasion by Jane Austen",
+"Piccadilly Jim by PG Wodehouse",
+"Pickwick Papers by Charles Dickens",
+"Pictures from an Institution by Randall Jarrell",
+"Pig Tales by Marie Darrieussecq",
+"Pilgrim's Progress by John Bunyan",
+"Play It As It Lays by Joan Didion",
+"Pnin by Vladimir Nabokov",
+"Poetic Justice by Amanda Cross",
+"Pointed Roofs by Dorothy Richardson",
+"Porterhouse Blue by Tom Sharpe",
+"Portnoy's Complaint by Philip Roth",
+"Portrait of a Lady by Henry James",
+"Possession by AS Byatt",
+"Postmortem by Patricia Cornwell",
+"Pragmatism by William James",
+"Preface to the first issue of Leaves of Grass (1855) by Walt Whitman",
+"Preface to the Lyrical Ballads by William Wordsworth",
+"Pride and Prejudice by Jane Austen",
+"Puckoon by Spike Milligan",
+"Pudd'nhead Wilson by Mark Twain",
+"Put Out More Flags by Evelyn Waugh",
+"Quarantine by Jim Crace",
+"Queen Lucia by EF Benson",
+"Rasselas by Samuel Johnson",
+"Ratking by Michael Dibdin",
+"Rebecca by Daphne du Maurier",
+"Red Dragon by Thomas Harris",
+"Red Harvest by Dashiell Hammett",
+"Red Shift by Alan Garner",
+"Regency Buck by Georgette Heyer",
+"Regeneration by Pat Barker",
+"Remembering Babylon by David Malouf",
+"Revelation Space by Alastair Reynolds",
+"Revolutionary Road by Richard Yates",
+"Richshaw Boy by Lao She",
+"Riddley Walker by Russell Hoban",
+"Ringworld by Larry Niven",
+"Robinson Crusoe by Daniel Defoe",
+"Rogue Male by Geoffrey Household",
+"Rogue Moon by Algis Budrys",
+"Room at the Top by John Braine",
+"Room Temperature by Nicholson Baker",
+"Roxana by Daniel Defoe",
+"Rubyfruit Jungle by Rita Mae Brown",
+"Ruth by Elizabeth Gaskell",
+"Sacaramouche by Rafael Sabatini",
+"Sakuntala by Kalidasa",
+"Samarkand by Amin Maalouf",
+"Sanctuary by William Faulkner",
+"Satanic Verses by Salman Rushdie",
+"Saturday Night and Sunday Morning by Alan Sillitoe",
+"Schindler's Ark by Thomas Keneally",
+"Scoop by Evelyn Waugh",
+"Second Treatise of Government by John Locke",
+"Selcted Plays and Prefaces by George Bernard Shaw",
+"Selected Essays by Michel Eyquem de Montaigne",
+"Selected Plays by Henrik Ibsen",
+"Selected Plays by Molière",
+"Selected Poems by Walt Whitman",
+"Selected Short Stories by Anton Chekhov",
+"Selected Short Stories by Franz Kafka",
+"Selected Shorter Poems by William Wordsworth",
+"Selected Tales by Nathaniel Hawthorne",
+"Selected Works by John Donne",
+"Selected Works by Ralph Waldo Emerson",
+"Selected Works by William Blake",
+"Sense and Sensibility by Jane Austen",
+"Sentimental Education by Gustave Flaubert",
+"Shah Nameh by Firdausi",
+"Shame by Salman Rushdie",
+"Sharpe's Eagle by Bernard Cornwell",
+"She: A History of Adventure by H Rider Haggard",
+"Shirley by Charlotte Bronte",
+"Short Stories and Other Works by Edgar Allan Poe",
+"Sidetracked by Henning Mankell",
+"Silas Marner by George Eliot",
+"Silence by Shusaku Endo",
+"Silence of the Grave by Arnadur Indridason",
+"Silver Stallion by Junghyo Ahn",
+"Sirens of Titan by Kurt Vonnegut",
+"Sister Carrie by Theodor Dreiser",
+"Slaughter-House Five by Kurt Vonnegut",
+"Slouching Towards Kalamazoo by Peter De Vries",
+"Snow Crash by Neal Stephenson",
+"So Long, See you Tomorrow by William Maxwell",
+"Solaris by Stanislaw Lem",
+"Solomon Gursky Was Here by Mordecai Richler",
+"Something Fresh by PG Wodehouse",
+"Song of Solomon by Toni Morrison",
+"Sonnets by John Milton",
+"Sons and Lovers by D. H. Lawrence",
+"Sophie's Choice by William Styron",
+"Sour Sweet by Timothy Mo",
+"South Riding by Winifred Holtby",
+"South Wind by Norman Douglas",
+"Speak, Memory by Vladimir Nabokov",
+"Spies by Michael Frayn",
+"Squire Haggard's Journal by Michael Green",
+"Star Maker by Olaf Stapledon",
+"Staying On by Paul Scott",
+"Steppenwolf by Herman Hesse",
+"Stranger in a Strange Land by Robert A Heinlein",
+"Strangers on a Train by Patricia Highsmith",
+"Suite Francaise by Irene Nemirovsky",
+"Sunset Song by Lewis Grassic Gibbon",
+"Swiss Family Robinson by Johann David Wyss",
+"Sybil or The Two Nations by Benjamin Disraeli",
+"Tale of Genji by Lady Murasaki",
+"Tales of the City by Armistead Maupin",
+"Tales of the South Pacific by James Michener",
+"Tender is the Night by F Scott Fitzgerald",
+"Tess of the D'Urbervilles by Thomas Hardy",
+"Thank You Jeeves by PG Wodehouse",
+"The Accidental Tourist by Anne Tyler",
+"The Adventures of Augie March by Saul Bellow",
+"The Adventures of Ferdinand Count Fathom by Tobias Smollett",
+"The Adventures of Huckleberry Finn by Mark Twain",
+"The Adventures of Peregrine Pickle by Tobias Smollett",
+"The Adventures of Roderick Random by Tobias Smollett",
+"The Adventures of Tom Sawyer by Mark Twain",
+"The Aeneid by Virgil",
+"The African Queen by CS Forester",
+"The Age of Innocence by Edith Wharton",
+"The Ambassadors by Henry James",
+"The Ancient Mariner by Samuel Taylor Coleridge",
+"The Andromeda Strain by Michael Crichton",
+"The Ascent of Rum Doodle by WE Bowman",
+"The Asphalt Jungle by WR Burnett",
+"The Assistant by Bernard Malamud",
+"The Autobiography by William Butler Yeats",
+"The Awakening by Kate Chopin",
+"The Bamboo Bed by William Eastlake",
+"The Baron in the Trees by Italo Calvino",
+"The Beast Must Die by Nicholas Blake",
+"The Bell Jar by Sylvia Plath",
+"The Betrothed by Alessandro Manzoni",
+"The Big Blowdown by George Pelecanos",
+"The Big Nowhere by James Ellroy",
+"The Big Sleep by Raymond Chandler",
+"The Black Prince by Iris Murdoch",
+"The Blackwater Lightship by Colm Toibin",
+"The Blind Assassin by Margaret Atwood",
+"The Blue Flower by Penelope Fitzgerald",
+"The Blue Room by Georges Simenon",
+"The Bluest Eye by Toni Morrison",
+"The Bonfire of the Vanities by Tom Wolfe",
+"The Book of Daniel by EL Doctorow",
+"The Book of Laughter and Forgetting by Milan Kundera",
+"The Book of the New Sun by Gene Wolfe",
+"The Bottle Factory Outing by Beryl Bainbridge",
+"The Bourne Identity by Robert Ludlum",
+"The Brothers Karamazov by Fyodor Dostoevsky",
+"The Butcher Boy by Patrick McCabe",
+"The Caine Mutiny by Herman Wouk",
+"The Call of the Wild by Jack London",
+"The Canterbury Tales by Geoffrey Chaucer",
+"The Case of Comrade Tulayev by Victor Serge",
+"The Case of the Gilded Fly by Edmund Crispin",
+"The Castafiore Emerald by Georges Remi Herge",
+"The Castle by Franz Kafka",
+"The Castle of Otranto by Horace Walpole",
+"The Charterhouse of Parma by Stendhal",
+"The Chateau by William Maxwell",
+"The Cherry Orchard by Anton Chekhov",
+"The Child in Time by Ian McEwan",
+"The Children of Men by PD James",
+"The Children of the New Forest by Frederick Marryat",
+"The Chronicles of Narnia by CS Lewis",
+"The Cloud Messenger by Kalidasa",
+"The Code of the Woosters by PG Wodehouse",
+"The Color Purple by Alice Walker",
+"The Coming Race by EGEL Bulwer-Lytton",
+"The Commitments by Roddy Doyle",
+"The Communist Manifesto by Karl Marx and Friedrich Engels",
+"The Confessions by Augustine",
+"The Constant Gardener by John le Carre",
+"The Count of Monte Cristo by Alexandre Dumas",
+"The Counterfeiters by Andre Gide",
+"The Crab with the Golden Claws by Georges Remi Herge",
+"The Crime of Father Amaro by José Maria de Eça de Queiroz",
+"The Crow Road by Iain Banks",
+"The Cruel Sea by Nicholas Monsarrat",
+"The Crying of Lot 49 by Thomas Pynchon",
+"The Curious Incident of the Dog in the Night-time by Mark Haddon",
+"The Custom of the Country by Edith Wharton",
+"The Daughter of Time by Josephine Tey",
+"The Day of the Jackal by Frederick Forsyth",
+"The Day of the Locust by Nathanael West",
+"The Death of the Heart by Elizabeth Bowen",
+"The Death of Virgil by Hermann Broch",
+"The Debacle by Emile Zola",
+"The Debt to Pleasure by John Lanchester",
+"The Devil to Pay in the Backlands by Joao Guimaraes Rosa",
+"The Discworld Series by Terry Pratchett",
+"The Divine Comedy by Dante Alighieri",
+"The Dream of the Red Chamber (also called The Story of the Stone) by Ts'ao Hsüeh-ch'in",
+"The Driver's Seat by Muriel Spark",
+"The Drowned World by JG Ballard",
+"The Earthsea Series by Ursula Le Guin",
+"The Echoing Grove by Rosamond Lehmann",
+"The Education of Henry Adams by Henry Adams",
+"The Egoist by George Meredith",
+"The Einstein Intersection by Samuel R Delaney",
+"The End of the Affair by Graham Greene",
+"The End of the World News by Anthony Burgess",
+"The English Patient by Michael Ondaatje",
+"The English Teacher by R. K. Narayan",
+"The Eustace Diamonds by Anthony Trollope",
+"The Expedition of Humphry Clinker by Tobias Smollett",
+"The Face of Another by Kobo Abe",
+"The Family Moskat or The Manor or The Estate by Isaac Bashevis Singer",
+"The Famished Road by Ben Okri",
+"The Far Pavillions by Mary Margaret Kaye",
+"The Female Man by Joanna Russ",
+"The First Circle by Aleksandr Isayevich Solzhenitsyn",
+"The Forever War by Joe Haldeman",
+"The Fortunes of Richard Mahoney by Henry Handel Richardson",
+"The Fountain Overflows by Rebecca West",
+"The Four Just Men by Edgar Wallace",
+"The French Lieutenant's Woman by John Fowles",
+"The Friends of Eddie Coyle by George V Higgins",
+"The Garden of the Finzi-Cortinis by Giorgio Bassani",
+"The Gathering by Anne Enright",
+"The Genealogy of Morals by Friedrich Wilhelm Nietzsche",
+"The Getaway by Jim Thompson",
+"The Girls of Slender Means by Muriel Spark",
+"The Glass Bead Game by Herman Hesse",
+"The Glass Key by Dashiell Hammett",
+"The Go-Between by LP Hartley",
+"The God of Small Things by Arundhati Roy",
+"The Godfather by Mario Puzo",
+"The Golden Notebook by Doris Lessing",
+"The Good Companions by JB Priestley",
+"The Good Soldier by Ford Madox Ford",
+"The Good Soldier Svejk by Jaroslav Hasek",
+"The Graduate by Charles Webb",
+"The Grapes of Wrath by John Steinbeck",
+"The Grass is Singing by Doris Lessing",
+"The Great Impersonation by E Phillips Oppenheim",
+"The Group by Mary McCarthy",
+"The Guns of Navarone by Alistair MacLean",
+"The Handmaid's Tale by Margaret Atwood",
+"The Hanging Gardens by Ian Rankin",
+"The Harpole Report by JL Carr",
+"The Haunting of Hill House by Shirley Jackson",
+"The Hearing Trumpet by Leonora Carrington",
+"The Heart is a Lonely Hunter by Carson McCullers",
+"The Heat of the Day by Elizabeth Bowen",
+"The History Man by Malcolm Bradbury",
+"The History of Mr Polly by HG Wells",
+"The History of Pompey the Little by Francis Coventry",
+"The Hitchhikers Guide to the Galaxy by Douglas Adams",
+"The Hollow Man by John Dickson Carr",
+"The Home and the World by Rabindranath Tagore",
+"The Horse's Mouth by Joyce Cary",
+"The Hound of the Baskervilles by Arthur Conan Doyle",
+"The House of Mirth by Edith Wharton",
+"The House of the Seven Gables by Nathaniel Hawthorne",
+"The Human Stain by Philip Roth",
+"The Hunters by James Salter",
+"The Iceman Cometh by Eugene O'Neill",
+"The Idiot by Fyodor Dostoevsky",
+"The Infamous Army by Georgette Heyer",
+"The Influence by Ramsey Campbell",
+"The Information by Martin Amis",
+"The Insult by Rupert Thomson",
+"The Interpretation of Dreams by Sigmund Freud",
+"The Invisible Man by Ralph Ellison",
+"The Ipcress File by Len Deighton",
+"The Island by Aldous Huxley",
+"The Island of Dr Moreau by HG Wells",
+"The Jungle by Upton Sinclair",
+"The King of Torts by John Grisham",
+"The Kingdom of this World by Alejo Carpentier",
+"The Kite Runner by Khaled Hosseini",
+"The Koran",
+"The L Shaped Room by Lynne Reid Banks",
+"The Last Chronicle of Barset by Anthony Trollope",
+"The Last September by Elizabeth Bowen",
+"The Laughing Policeman by Maj Sjowall and Per Wahloo",
+"The League of Frightened Men by Rex Stout",
+"The Lecturer's Tale by James Hynes",
+"The Left Hand of Darkness by Ursula Le Guin",
+"The Life and Loves of a She-Devil by Fay Weldon",
+"The Life and Opinions of Tristram Shandy, Gentleman by Laurence Sterne",
+"The Life of Samuel Johnson by James Boswell  Basic Documents in American History, by Thomas Jefferson and others edited by Richard B. Morris",
+"The Line of Beauty by Alan Hollinghurst",
+"The Little World of Don Camillo by Giovanni Guareschi",
+"The Logic of Scientific Discovery by Karl Popper",
+"The Lonely Passion of Judith Hearne by Brian Moore",
+"The Long Goodbye by Raymond Chandler",
+"The Luck of Barry Lyndon by William Makepeace Thackeray",
+"The Machine-Gunners by Robert Westall",
+"The Madman of Bergerac by Georges Simenon",
+"The Magic Mountain by Thomas Mann",
+"The Magnificent Ambersons by Booth Tarkington",
+"The Makioka Sisters by Tanizaki Junichiro",
+"The Maltese Falcon by Dashiell Hammett",
+"The Man in the High Castle by Philip K Dick",
+"The Man of Property by John Galsworthy",
+"The Man Who Loved Children by Christina Stead",
+"The Man who was Thursday by GK Chesterton",
+"The Man with the Golden Arm by Nelson Algren",
+"The Man Without Qualities by Robert Musil",
+"The Manchurian Candidate by Richard Condon",
+"The Map of Love by Ahdaf Soueif",
+"The Mark of Zorro by Johnston McCulley",
+"The Mask of Dimitrios by Eric Ambler",
+"The Master and Margarita by Mikhail Bulgakov",
+"The Mayor of Casterbridge by Thomas Hardy",
+"The Member of the Wedding by Carson McCullers",
+"The Midwich Cuckoos by John Wyndham",
+"The Mighty Walzer Howard by Jacobson",
+"The Military Philosophers by Anthony Powell",
+"The Mill on the Floss by George Eliot",
+"The Millstone by Margaret Drabble",
+"The Ministry of Fear by Graham Greene",
+"The Monk by Matthew Lewis",
+"The Moon and the Bonfire by Cesare Pavese",
+"The Moonstone by Wilkie Collins",
+"The Moviegoer by Walker Percy",
+"The Murder at the Vicarage by Agatha Christie",
+"The Murder of Roger Ackroyd by Agatha Christie",
+"The Mysteries of Udolpho by Ann Radcliffe",
+"The Mysterious Affair at Styles by Agatha Christie",
+"The Mysterious Stranger by Mark Twain",
+"The Naked and the Dead by Norman Mailer",
+"The Name of the Rose by Umberto Eco",
+"The Narrow Road to the Deep North by Matsuo Basho",
+"The Neon Rain by James Lee Burke",
+"The Night Sessions by Ken Macleod",
+"The Night Watch by Sarah Waters",
+"The Odd Women by George Gissing",
+"The Old Men at the Zoo by Angus Wilson",
+"The Old Wives' Tale by Arnold Bennett",
+"The Open Society and Its Enemies by Karl Popper",
+"The Ordeal of Richard Feverek by George Meredith",
+"The Origin of Species by Charles Darwin",
+"The Painted Bird by Jerzy Kosinski",
+"The Painter of Signs by RK Narayan",
+"The Parasites by Daphne du Maurier",
+"The Passion by Jeanette Winterson",
+"The Passion of New Eve by Angela Carter",
+"The Piano Teacher by Elfriede Jelinek",
+"The Pickwick Papers by Charles Dickens",
+"The Picture of Dorian Gray by Oscar Wilde",
+"The Pillow Book by Sei Shonagon",
+"The Plague by Albert Camus",
+"The Platform Sutra of the Sixth Patriarch by Hui-neng",
+"The Pledge by Friedrich Durrenmatt",
+"The Plum in the Golden Vase (Chin P'ing Mei)",
+"The Poisoned Chocolates Case by Anthony Berkeley",
+"The Polygots by William Gerhardie",
+"The Posthumous Memoirs of Bras Cubas by Joaquim Maria Machado de Assis",
+"The Postman Always Rings Twice by James M Cain",
+"The Prelude by William Wordsworth",
+"The Prestige by Christopher Priest",
+"The Prime of Miss Jean Brodie by Muriel Spark",
+"The Princess of Cleves by Madame de Lafayette",
+"The Principles of Psychology by William James",
+"The Prisoner of Zenda by Anthony Hope",
+"The Private Memoirs and Confessions of a Justified Sinner by James Hogg",
+"The Professor's House by Willa Cather",
+"The Provincial Lady by EM Delafield",
+"The Pursuit of Love by Nancy Mitford",
+"The Rabbit Omnibus by John Updike",
+"The Radetzky March by Joseph Roth",
+"The Ragazzi Pier by Paolo Pasolini",
+"The Ragged Trousered Philanthropists by Robert Tressell",
+"The Rainbow by DH Lawrence",
+"The Reader by Benhardq Schlink",
+"The Recognitions by William Gaddis",
+"The Rector's Daughter by FM Mayor",
+"The Red Badge of Courage by Stephen Crane",
+"The Red Room by August Stringberg",
+"The Reluctant Orphan by Aara Seale",
+"The Remains of the Day by Kazuo Ishiguro",
+"The Remorseful Day by Colin Dexter",
+"The Restraint of Beasts by Magnus Mills",
+"The Return of the Soldier by Rebecca West",
+"The Riddle of the Sands by Erskine Childers",
+"The Rings of Saturn by WG Sebald",
+"The Road by Cormac McCarthy",
+"The Romance of the Three Kingdoms by Luo Kuan-chung",
+"The Rubaiyat by Omar Khayyam",
+"The Sacred Book of the Werewolf by Victor Pelevin",
+"The Savage Detectives by Roberto Bolano",
+"The Scar by China Mieville",
+"The Scarlet Letter by Nathaniel Hawthorne",
+"The Scarlet Pimpernel by Baroness Emmuska Orczy",
+"The Secret Adversary by Agatha Christie",
+"The Secret History by Donna Tartt",
+"The Shining by Stephen King",
+"The Ship by CS Forester",
+"The Shipping News by E Annie Proulx",
+"The Shrimp and the Anemone by LP Hartley",
+"The Siege of Krishnapur by JG Farrell",
+"The Sign of Four by Arthur Conan Doyle",
+"The Silent Duchess by Dacia Maraini",
+"The Slaves of Solitude by Patrick Hamilton",
+"The Snow Goose by Paul Gallico",
+"The Soldier's Art by Anthony Powell",
+"The Sorrow of War by Bao Ninh",
+"The Sorrows of Young Werther by Johann Wolfgang Goethe",
+"The Sound and the Fury by William Faulkner",
+"The Sound of my Voice by Ron Butlin",
+"The Space Merchants by Frederik Pohl and CM Kornbluth",
+"The Sportswriter by Richard Ford",
+"The Spy Who Came in from the Cold by John le Carre",
+"The Stars My Destination by Alfred Bester",
+"The Strange Borders of Palace Crescent by E Phillips Oppenheim",
+"The Strange Case of Dr Jekyll and Mr Hyde by Robert Louis Stevenson",
+"The Structure of Scientific Revolutions by Thomas Kuhn",
+"The Subjection of Women by John Stuart Mill",
+"The Surprising Adventures of Baron Munchausen by Rudolp Erich Raspe",
+"The Swimming-Pool Library by Alan Hollinghurst",
+"The Sword in the Stone by TH White",
+"The Talented Mr Ripley by Patricia Highsmith",
+"The Thin Man by Dashiell Hammett",
+"The Things They Carried by Tim O'Brien",
+"The Third Policeman by Flann O'Brien",
+"The Thousand and One Nights",
+"The Three Musketeers by Alexandre Dumas",
+"The Three Paradoxes by Paul Hornschemeier",
+"The Three Sisters by May Sinclair",
+"The Time Machine by HG Wells",
+"The Time of Indifference by Alberto Moravia",
+"The Time Ships by Stephen Baxter",
+"The Tin Drum by Gunter Grass",
+"The Tin Roof Blowdown by James Lee Burke",
+"The Tortoise and the Hare by Elizabeth Jenkins",
+"The Towers of Trebizond by Rose Macaulay",
+"The Transit of Venus by Shirley Hazzard",
+"The Tree of Man by Patrick White",
+"The Trial by Franz Kafka",
+"The Turn of the Screw by Henry James",
+"The Unbearable Bassington by Saki",
+"The Uncommon Reader by Alan Bennett",
+"The Unconsoled by Kazuo Ishiguro",
+"The Unfortunates by BS Johnson",
+"The Vagabond by Sidonie-Gabrielle Colette",
+"The Valley of Bones by Anthony Powell",
+"The Varieties of Religious Experience by William James",
+"The Vatican Cellars by Andre Gide",
+"The Vendor of Sweets by R. K. Narayan",
+"The Vicar of Wakefield by Oliver Goldsmith",
+"The Victorian Chaise-longue by Marghanita Laski",
+"The Virgin in the Garden by AS Byatt",
+"The Virgin Suicides by Jeffrey Eugenides",
+"The Virginian by Owen Wister",
+"The Voyage of the Beagle by Charles Darwin",
+"The Wapshot Chronicle by John Cheever",
+"The War of the Worlds by HG Wells",
+"The Warden by Anthony Trollope",
+"The Wasp Factory by Iain Banks",
+"The Waves by Virginia Woolf",
+"The Way of All Flesh by Samuel Butler",
+"The Way We Live Now by Anthony Trollope",
+"The Weather in the Streets by Rosamond Lehmann",
+"The Well of Loneliness by Radclyffe Hall",
+"The Westminster Alice by Saki",
+"The Wimbledon Poisoner by Nigel Williams",
+"The Wind in the Willows by Kenneth Grahame",
+"The Wings of the Dove by Henry James",
+"The Witches of Eastwick by John Updike",
+"The Woman in White by Wilkie Collins",
+"The Woodlanders by Thomas Hardy",
+"Essays on the wisdom of life by Arthur Schopenhauer",
+"The Years of Rice and Salt by Kim Stanley Robinson",
+"The Young Lions by Irwin Shaw",
+"Their Eyes Were Watching God by Zora Neale Hurston",
+"Therese Raquin by Emile Zola",
+"They Were Counted by Miklos Banffy",
+"This Sporting Life by David Storey",
+"Thoughts (Pensées) by Blaise Pascal",
+"Three Essays on the Theory of Sexuality by Sigmund Freud",
+"Three Sisters by Anton Chekhov",
+"Three Soldiers by John Dos Passos",
+"Through the Looking-Glass by Lewis Carroll",
+"Thus Spake Zarathustra by Friedrich Wilhelm Nietzsche",
+"Tinker, Tailor, Soldier, Spy by John le Carre",
+"Titmuss Regained by John Mortimer",
+"Titus Groan by Mervyn Peake",
+"To Each his Own by Leonardo Sciascia",
+"To The Ends of the Earth trilogy by William Golding",
+"To the Lighthouse by Virginia Woolf",
+"Tobacco Road by Erskine Caldwell",
+"Tom Brown's Schooldays by Thomas Hughes",
+"Tom Jones by Henry Fielding",
+"Tono Bungay by HG Wells",
+"Topper Takes a Trip by Thorne Smith",
+"Tourist Season by Carl Hiaasen",
+"Towards the End of the Morning by Michael Frayn",
+"Toxic Shock by Sara Paretsky",
+"Trainspotting by Irvine Welsh",
+"Treasure Island by Robert Louis Stevenson",
+"Trent's Last Case by EC Bentley",
+"Tristram Shandy by Laurence Sterne",
+"Tropic of Cancer by Henry Miller",
+"Tropic of Ruislip by Leslie Thomas",
+"True History of the Ned Kelly Gang by Peter Carey",
+"Two Serious Ladies by Jane Bowles",
+"Ulysses by James Joyce",
+"Uncle Silas by Joseph Sheridan Le Fanu",
+"Uncle Tom's Cabin by Harriet Beecher Stowe",
+"Uncle Vanya by Anton Chekhov",
+"Under the Net by Iris Murdoch",
+"Under the Skin by Michel Faber",
+"Under the Volcano by Malcolm Lowry",
+"Under Western Eyes by Joseph Conrad",
+"Underworld by Don DeLillo",
+"Unless by Carol Shields",
+"Untouchable by Mulk Raj Anand",
+"USA by John Dos Passos",
+"V by Thomas Pynchon",
+"Valley of the Dolls by Jacqueline Susann",
+"Vanity Fair by William Makepeace Thackeray",
+"Vathek by William Beckford",
+"Vendetta by Michael Dibdin",
+"Venus on the Half-Shell by Kilgore Trout",
+"Victory: An Island Tale by Joseph Conrad",
+"Vile Bodies by Evelyn Waugh",
+"Vilette by Charlotte Bronte",
+"Vineland by Thomas Pynchon",
+"Voss by Patrick White",
+"Vurt by Jeff Noon",
+"Waiting for Godot by Samuel Beckett",
+"Waiting for the Barbarians by JM Coeztee",
+"War and Peace by Leo Tolstoy",
+"Washington Square by Henry James",
+"Waterland by Graham Swift",
+"We by Yevgeny Zamyatin",
+"We Need to Talk About Kevin by Lionel Shriver",
+"Weaveworld by Clive Barker",
+"What a Carve Up! by Jonathan Coe",
+"When the Wind Blows by Raymond Briggs",
+"Whisky Galore by Compton Mackenzie",
+"White Man Falling by Mike Stocks",
+"White Noise by Don DeLillo",
+"White Teeth by Zadie Smith",
+"Who Do You Think You Are? by Alice Munro",
+"Whose Body? by Dorothy L Sayers",
+"Wide Sargasso Sea by Jean Rhys",
+"Wieland by Charles Brockden Brown",
+"Williwaw by Gore Vidal",
+"Wise Children by Angela Carter",
+"Women in Love by D. H. Lawrence",
+"Writings on Shakespeare by Samuel Taylor Coleridge",
+"Wuthering Heights by Emily Bronte",
+"You Only Live Twice by Ian Fleming",
+"Z by Vassilis Vassilikos",
+"Zami by Audre Lorde",
+"Zazie in the Metro by Raymond Queneau",
+"Zen and the Art of Motorcycle Maintenance by Robert Pirsig",
+"Zorba the Greek by Nikos Kazantzakis",
+"Zuleika Dobson by Max Beerbohm",
+"Il nome della rosa by Umberto Eco",
+"Il Gattopardo by Giuseppe Tomasi di Lampedusa",
+"Du côté de chez Swann by Marcel Proust",
+"À l'ombre des jeunes filles en fleurs by Marcel Proust",
+"Le Côté de Guermantes by Marcel Proust",
+"Sodome et Gomorrhe by Marcel Proust",
+"La Prisonnière by Marcel Proust",
+"Albertine disparue by Marcel Proust",
+"Le Temps retrouvé by Marcel Proust",
+"風の歌を聴け by Haruki Murakami",
+"1973年のピンボール by Haruki Murakami",
+"羊をめぐる冒険 by Haruki Murakami",
+"中国行きのスロウ・ボート by Haruki Murakami",
+"螢・納屋を焼く・その他の短編 by Haruki Murakami",
+"回転木馬のデッド・ヒート by Haruki Murakami",
+"世界の終りとハードボイルド・ワンダーランド by Haruki Murakami",
+"パン屋再襲撃 by Haruki Murakami",
+"ノルウェイの森 by Haruki Murakami",
+"ダンス・ダンス・ダンス by Haruki Murakami",
+"TVピープル by Haruki Murakami",
+"国境の南、太陽の西 by Haruki Murakami",
+"ねじまき鳥クロニクル by Haruki Murakami",
+"アンダーグラウンド by Haruki Murakami",
+"スプートニクの恋人 by Haruki Murakami",
+"神の子どもたちはみな踊る by Haruki Murakami",
+"海辺のカフカ by Haruki Murakami",
+"アフターダーク by Haruki Murakami",
+"東京奇譚集 by Haruki Murakami",
+"めくらやなぎと眠る女 by Haruki Murakami",
+"走ることについて語るときに僕の語ること by Haruki Murakami",
+"1Q84 by Haruki Murakami"
+          ];
+          
+          bookList.forEach((bookStr, index) => {
+            const bookId = `book_${index}_${Date.now()}`;
+            const parts = bookStr.split(' by ');
+            const title = parts[0];
+            const author = parts[1] || '';
+            defaultBooks[bookId] = {
+              title: title,
+              author: author,
+              complete: false,
+              completionDate: ''
+            };
+          });
+          
+          return defaultBooks;
+        } catch (e) {
+          return {};
+        }
+      });
+
+      const [decemberTasks, setDecemberTasks] = useState(() => {
+        try {
+          const saved = localStorage.getItem('decemberTasks');
+          return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+          return [];
+        }
+      });
+
+      const [booksFilter, setBooksFilter] = useState('unread');
+      const [decemberFilter, setDecemberFilter] = useState('incomplete');
+      const [editingGoal, setEditingGoal] = useState(null);
+      const [editingBook, setEditingBook] = useState(null);
+      const [showAddBook, setShowAddBook] = useState(false);
+      const [newBookTitle, setNewBookTitle] = useState('');
+      const [newBookAuthor, setNewBookAuthor] = useState('');
+      const [showAddDecemberTask, setShowAddDecemberTask] = useState(false);
+      const [newDecemberTask, setNewDecemberTask] = useState('');
+
+      const moveTaskUp = (habitId) => {
+        const currentIndex = taskOrder.indexOf(habitId);
+        if (currentIndex > 0) {
+          const newOrder = [...taskOrder];
+          [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+          setTaskOrder(newOrder);
+        }
+      };
+
+      const moveTaskDown = (habitId) => {
+        const currentIndex = taskOrder.indexOf(habitId);
+        if (currentIndex < taskOrder.length - 1) {
+          const newOrder = [...taskOrder];
+          [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+          setTaskOrder(newOrder);
+        }
+      };
+
+      const habits = [
+        { id: 1, name: '10', baseCountdown: 360, type: 'daily' },
+        { id: 11, name: '1', type: 'daily' },
+        { id: 3, name: '1000', type: 'daily' },
+        { id: 2, name: '100', type: 'daily' }
+      ];
+
+      const sortedHabits = [...habits].sort((a, b) => {
+        return taskOrder.indexOf(a.id) - taskOrder.indexOf(b.id);
+      });
+
+      const getTaskDisplayName = (habitId, dateStr = selectedDate) => {
+        return customTaskNames[habitId] || habits.find(h => h.id === habitId)?.name || '';
+      };
+
+      const isFifthDay = (dateStr) => {
+        const start = new Date(FIFTH_DAY_START + 'T00:00:00');
+        const target = new Date(dateStr + 'T00:00:00');
+        
+        if (target < start) return false;
+        
+        let workDayCount = 0;
+        let current = new Date(start);
+        
+        while (current <= target) {
+          const dayOfWeek = current.getDay();
+          if (dayOfWeek !== 6) { // Exclude Saturdays
+            workDayCount++;
+            if (workDayCount % 5 === 0 && current.getTime() === target.getTime()) {
+              return true;
+            }
+          }
+          current.setDate(current.getDate() + 1);
+        }
+        
+        return false;
+      };
+
+      const getCycleDay = (dateStr) => {
+        const start = new Date(FIFTH_DAY_START + 'T00:00:00');
+        const target = new Date(dateStr + 'T00:00:00');
+        
+        if (target < start) return null;
+        
+        const dayOfWeek = target.getDay();
+        if (dayOfWeek === 6) return null; // Saturdays are not in the cycle
+        
+        let workDayCount = 0;
+        let current = new Date(start);
+        
+        while (current <= target) {
+          const currentDayOfWeek = current.getDay();
+          if (currentDayOfWeek !== 6) { // Exclude Saturdays
+            workDayCount++;
+          }
+          current.setDate(current.getDate() + 1);
+        }
+        
+        const cyclePosition = ((workDayCount - 1) % 5) + 1;
+        return cyclePosition;
+      };
+
+      const startEditingTaskName = (habitId) => {
+        setEditingTaskName(habitId);
+        setTempTaskName(getTaskDisplayName(habitId));
+      };
+
+      const saveTaskName = (habitId) => {
+        if (tempTaskName.trim()) {
+          setCustomTaskNames(prev => ({
+            ...prev,
+            [habitId]: tempTaskName.trim()
+          }));
+        }
+        setEditingTaskName(null);
+        setTempTaskName('');
+      };
+
+      const cancelEditingTaskName = () => {
+        setEditingTaskName(null);
+        setTempTaskName('');
+      };
+
+      const getLatestFinanceData = () => {
+        const dates = Object.keys(trackedData).sort().reverse();
+        for (const date of dates) {
+          const financeData = getFinanceData(date);
+          if (financeData) {
+            return financeData;
+          }
+        }
+        return null;
+      };
+
+      const getActiveFinanceGoal = () => {
+        const latestFinance = getLatestFinanceData();
+        
+        if (!latestFinance) return null;
+        
+        // Priority 1: Credit Card > 0
+        if (latestFinance.creditCard > 0) {
+          return {
+            type: 'creditCard',
+            label: 'Credit Card',
+            current: latestFinance.creditCard,
+            target: 0,
+            distance: -latestFinance.creditCard
+          };
+        }
+        
+        // Priority 2: Emergency Fund < £24000
+        if (latestFinance.emergencyFund < 24000) {
+          return {
+            type: 'emergencyFund',
+            label: 'Emergency Fund',
+            current: latestFinance.emergencyFund,
+            target: 24000,
+            distance: latestFinance.emergencyFund - 24000
+          };
+        }
+        
+        // Priority 3: £1.5M target
+        const netValue = calculateNetValue(latestFinance);
+        return {
+          type: 'netWorth',
+          label: '£1.5M Target',
+          current: netValue,
+          target: financeTarget,
+          distance: netValue - financeTarget
+        };
+      };
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('habitTrackerData288', JSON.stringify(trackedData));
+        } catch (e) {
+          console.error('Failed to save data:', e);
+        }
+      }, [trackedData]);
+
+      const getFinanceData = (date) => {
+        const dateData = getDateData(date);
+        return dateData.financeData || null;
+      };
+
+      const getPreviousDayFinanceData = (date) => {
+        const currentDate = new Date(date + 'T00:00:00');
+        let searchDate = new Date(currentDate);
+        searchDate.setDate(searchDate.getDate() - 1);
+        
+        for (let i = 0; i < 30; i++) {
+          const dateStr = getLocalDateString(searchDate);
+          const financeData = getFinanceData(dateStr);
+          if (financeData) {
+            return financeData;
+          }
+          searchDate.setDate(searchDate.getDate() - 1);
+        }
+        return null;
+      };
+
+      const calculateNetValue = (financeData) => {
+        if (!financeData) return null;
+        const assets = (financeData.emergencyFund || 0) + (financeData.lisa || 0) + 
+                      (financeData.isa || 0) + (financeData.sipp || 0) + (financeData.gia || 0);
+        const liabilities = (financeData.creditCard || 0) + (financeData.mortgage || 0);
+        return assets - liabilities;
+      };
+
+      const saveFinanceData = () => {
+        const financeData = {
+          emergencyFund: parseFloat(currentFinanceData.emergencyFund) || 0,
+          lisa: parseFloat(currentFinanceData.lisa) || 0,
+          isa: parseFloat(currentFinanceData.isa) || 0,
+          sipp: parseFloat(currentFinanceData.sipp) || 0,
+          gia: parseFloat(currentFinanceData.gia) || 0,
+          creditCard: parseFloat(currentFinanceData.creditCard) || 0,
+          mortgage: parseFloat(currentFinanceData.mortgage) || 0
+        };
+        
+        setTrackedData(prev => ({
+          ...prev,
+          [selectedDate]: {
+            ...prev[selectedDate],
+            financeData: financeData
+          }
+        }));
+        
+        setShowFinanceModal(false);
+        setCurrentFinanceData({
+          emergencyFund: '',
+          lisa: '',
+          isa: '',
+          sipp: '',
+          gia: '',
+          creditCard: '',
+          mortgage: ''
+        });
+      };
+
+      const openFinanceModal = () => {
+        const existing = getFinanceData(selectedDate);
+        const previousData = existing || getPreviousDayFinanceData(selectedDate) || getLatestFinanceData();
+        
+        if (previousData) {
+          setCurrentFinanceData({
+            emergencyFund: previousData.emergencyFund.toString(),
+            lisa: previousData.lisa.toString(),
+            isa: previousData.isa.toString(),
+            sipp: previousData.sipp.toString(),
+            gia: previousData.gia.toString(),
+            creditCard: previousData.creditCard.toString(),
+            mortgage: previousData.mortgage.toString()
+          });
+        }
+        setShowFinanceModal(true);
+      };
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('habitTaskOrder', JSON.stringify(taskOrder));
+        } catch (e) {
+          console.error('Failed to save task order:', e);
+        }
+      }, [taskOrder]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('goals', JSON.stringify(goals));
+        } catch (e) {
+          console.error('Failed to save goals:', e);
+        }
+      }, [goals]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('customTaskNames', JSON.stringify(customTaskNames));
+        } catch (e) {
+          console.error('Failed to save custom task names:', e);
+        }
+      }, [customTaskNames]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('books', JSON.stringify(books));
+        } catch (e) {
+          console.error('Failed to save books:', e);
+        }
+      }, [books]);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem('decemberTasks', JSON.stringify(decemberTasks));
+        } catch (e) {
+          console.error('Failed to save december tasks:', e);
+        }
+      }, [decemberTasks]);
+
+      useEffect(() => {
+        const updateTimeBlock = () => {
+          const now = new Date();
+          const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
+          const block = Math.floor(minutesSinceMidnight / 40);
+          setCurrentTimeBlock(block);
+        };
+        updateTimeBlock();
+        const interval = setInterval(updateTimeBlock, 60000);
+        return () => clearInterval(interval);
+      }, []);
+
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setElapsedSeconds(prev => {
+            const updated = { ...prev };
+            Object.keys(timers).forEach(habitId => {
+              if (timers[habitId] && timerStartTimes[habitId]) {
+                updated[habitId] = Math.floor((Date.now() - timerStartTimes[habitId]) / 1000);
+              }
+            });
+            return updated;
+          });
+        }, 1000);
+        return () => clearInterval(interval);
+      }, [timers, timerStartTimes]);
+
+      const isWorkDay = (dateStr) => {
+        if (trackedData[dateStr]?.flexDayOff) return false;
+        const date = new Date(dateStr + 'T00:00:00');
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 6) return false; // Saturday is not a work day
+        return true;
+      };
+
+      const isNaturalWorkDay = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00');
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 6) return false; // Saturday
+        return true;
+      };
+
+      const getDateData = (date) => trackedData[date] || {};
+
+      const getSpecialDates = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00');
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const dates = [];
+
+        const specialDays = {
+          '01-09': "🎂 Shelagh's birthday",
+          '01-17': "🎂 Jack's birthday",
+          '01-18': "🎂 Peter's birthday",
+          '02-28': "🎂 Alistair's birthday",
+          '03-26': "🎂 Sebastian's birthday",
+          '06-09': "🎂 Jin's birthday",
+          '06-10': "🎂 Theo's birthday",
+          '06-30': "🎂 Rowan's birthday",
+          '07-14': "🎂 Arthy's birthday",
+          '07-18': "🎂 Rachael's birthday",
+          '08-06': "🎂 Ed's birthday",
+          '08-27': "💕 Wedding anniversary",
+          '09-18': "🎂 Tristan's birthday",
+          '09-26': "🎂 Andrew's birthday",
+          '10-15': "🎂 Mum's birthday",
+          '10-19': "🎂 Chloe's birthday",
+          '11-03': "🎂 Dad's birthday",
+          '11-07': "🎂 Rashad's birthday",
+          '12-03': "🎂 Victoria's birthday",
+          '12-12': "🎂 Ollie's birthday"
+        };
+
+        const key = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        if (specialDays[key]) {
+          dates.push(specialDays[key]);
+        }
+
+        if (month === 1 && day === 1) dates.push("🏴󠁧󠁢󠁥󠁮󠁧󠁿 New Year's Day");
+        if (month === 12 && day === 25) dates.push("🏴󠁧󠁢󠁥󠁮󠁧󠁿 Christmas Day");
+        if (month === 12 && day === 26) dates.push("🏴󠁧󠁢󠁥󠁮󠁧󠁿 Boxing Day");
+
+        return dates;
+      };
+
+      const isHabitComplete = (habitId, date) => {
+        const dateData = getDateData(date);
+        return dateData[`task${habitId}Complete`] || false;
+      };
+
+      const isDayComplete = (date) => {
+        if (!isWorkDay(date)) return true;
+        const dateData = getDateData(date);
+        
+        let requiredTasks = [1, 2, 3, 11];
+        
+        const allHabitsComplete = requiredTasks.every(id => isHabitComplete(id, date));
+        const totalTime = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+        return allHabitsComplete && totalTime >= 360;
+      };
+
+      const getTotalTime = (date) => {
+        const dateData = getDateData(date);
+        return [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+      };
+
+      const getOvertimeBank = () => {
+        let totalOvertime = 0;
+        Object.keys(trackedData).forEach(date => {
+          if (isWorkDay(date)) {
+            const totalTime = getTotalTime(date);
+            if (totalTime > 348) {
+              totalOvertime += (totalTime - 348);
+            }
+          }
+        });
+        return totalOvertime;
+      };
+
+      const getFlexDaysRemaining = () => {
+        const earned = Math.floor(getOvertimeBank() / 348);
+        const used = Object.keys(trackedData).filter(d => trackedData[d]?.flexDayOff).length;
+        return earned - used;
+      };
+
+      const getOvertimeProgress = () => {
+        return getOvertimeBank() % 348;
+      };
+
+      const toggleFlexDayOff = () => {
+        const isCurrentlyFlex = trackedData[selectedDate]?.flexDayOff;
+        setTrackedData(prev => ({
+          ...prev,
+          [selectedDate]: {
+            ...prev[selectedDate],
+            flexDayOff: !isCurrentlyFlex
+          }
+        }));
+      };
+
+      const updateHabit = (habitId) => {
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`task${habitId}Complete`]: true}}));
+      };
+
+      const deleteTask = (habitId) => {
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`task${habitId}Complete`]: false}}));
+      };
+
+      const calculateMinutes = (startTime, endTime) => {
+        if (!startTime || !endTime) return 0;
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        const [endHour, endMin] = endTime.split(':').map(Number);
+        const startMinutes = startHour * 60 + startMin;
+        let endMinutes = endHour * 60 + endMin;
+        if (endMinutes < startMinutes) endMinutes += 24 * 60;
+        return endMinutes - startMinutes;
+      };
+
+      const updateTime = (habitId) => {
+        const startTime = currentStartTimes[habitId];
+        const endTime = currentEndTimes[habitId];
+        if (startTime && endTime) {
+          const minutes = calculateMinutes(startTime, endTime);
+          if (minutes > 0) {
+            const currentTotal = getDateData(selectedDate)[`time${habitId}`] || 0;
+            setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`time${habitId}`]: currentTotal + minutes, [`timeEntries${habitId}`]: [...(prev[selectedDate]?.[`timeEntries${habitId}`] || []), { start: startTime, end: endTime, minutes }]}}));
+            setCurrentStartTimes(prev => ({ ...prev, [habitId]: '' }));
+            setCurrentEndTimes(prev => ({ ...prev, [habitId]: '' }));
+          }
+        }
+      };
+
+      const deleteTimeEntry = (habitId, entryIndex) => {
+        const dateData = getDateData(selectedDate);
+        const timeEntries = dateData[`timeEntries${habitId}`] || [];
+        const entryToDelete = timeEntries[entryIndex];
+        if (entryToDelete) {
+          const newEntries = timeEntries.filter((_, index) => index !== entryIndex);
+          const currentTotal = dateData[`time${habitId}`] || 0;
+          const newTotal = Math.max(0, currentTotal - entryToDelete.minutes);
+          setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`time${habitId}`]: newTotal, [`timeEntries${habitId}`]: newEntries}}));
+        }
+      };
+
+      const startTimer = (habitId) => {
+        setTimers(prev => ({ ...prev, [habitId]: true }));
+        setTimerStartTimes(prev => ({ ...prev, [habitId]: Date.now() }));
+        setElapsedSeconds(prev => ({ ...prev, [habitId]: 0 }));
+      };
+
+      const pauseTimer = (habitId) => {
+        setTimers(prev => ({ ...prev, [habitId]: false }));
+      };
+
+      const stopTimer = (habitId) => {
+        const elapsed = elapsedSeconds[habitId] || 0;
+        
+        if (elapsed > 0) {
+          const minutes = Math.floor(elapsed / 60);
+          const currentTotal = getDateData(selectedDate)[`time${habitId}`] || 0;
+          const now = new Date();
+          const endTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          const startDate = new Date(timerStartTimes[habitId]);
+          const startTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+          setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`time${habitId}`]: currentTotal + minutes, [`timeEntries${habitId}`]: [...(prev[selectedDate]?.[`timeEntries${habitId}`] || []), { start: startTime, end: endTime, minutes }]}}));
+        }
+        
+        setTimers(prev => ({ ...prev, [habitId]: false }));
+        setTimerStartTimes(prev => ({ ...prev, [habitId]: null }));
+        setElapsedSeconds(prev => ({ ...prev, [habitId]: 0 }));
+      };
+
+      const getCountdownMinutes = (habitId) => {
+        const dateData = getDateData(selectedDate);
+        
+        if (habitId === 3) {
+          const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+          const timeOnTask3 = dateData.time3 || 0;
+          const baseCountdown = 360 - timeOnOtherTasks;
+          const remaining = baseCountdown - timeOnTask3;
+          
+          if (remaining <= 0) {
+            return null;
+          }
+          
+          return remaining;
+        } else {
+          const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+          const remaining = 360 - totalLoggedMinutes;
+          
+          if (remaining <= 0) {
+            return null;
+          }
+          
+          return remaining;
+        }
+      };
+
+      const formatTime = (seconds, habitId) => {
+        const dateData = getDateData(selectedDate);
+        
+        let displaySeconds = seconds;
+        
+        if (habitId === 3) {
+          const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+          const timeOnTask3 = dateData.time3 || 0;
+          const baseCountdown = 360 - timeOnOtherTasks;
+          const remainingMinutes = baseCountdown - timeOnTask3;
+          const remainingSeconds = remainingMinutes * 60;
+          displaySeconds = Math.max(0, remainingSeconds - seconds);
+        } else {
+          const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
+          const totalLoggedSeconds = totalLoggedMinutes * 60;
+          const targetSeconds = 360 * 60;
+          const totalElapsedSeconds = seconds + totalLoggedSeconds;
+          const remaining = targetSeconds - totalElapsedSeconds;
+          
+          if (remaining > 0) {
+            displaySeconds = remaining;
+          } else {
+            displaySeconds = seconds;
+          }
+        }
+        
+        const totalMinutes = Math.floor(displaySeconds / 60);
+        return `${totalMinutes}m`;
+      };
+
+      const updateNote = (habitId) => {
+        const note = currentNotes[habitId] || '';
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`note${habitId}`]: note}}));
+        setCurrentNotes(prev => ({ ...prev, [habitId]: '' }));
+      };
+
+      const editNote = (habitId) => {
+        const existingNote = getDateData(selectedDate)[`note${habitId}`] || '';
+        setCurrentNotes(prev => ({ ...prev, [habitId]: existingNote }));
+      };
+
+      const deleteNote = (habitId) => {
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], [`note${habitId}`]: ''}}));
+        setCurrentNotes(prev => ({ ...prev, [habitId]: '' }));
+      };
+
+      const updateDailyNote = () => {
+        const userNote = dailyNote.trim();
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], dailyNote: userNote}}));
+        setDailyNote('');
+      };
+
+      const editDailyNote = () => {
+        const existingNote = getDateData(selectedDate).dailyNote || '';
+        setDailyNote(existingNote);
+      };
+
+      const deleteDailyNote = () => {
+        setTrackedData(prev => ({...prev, [selectedDate]: {...prev[selectedDate], dailyNote: ''}}));
+        setDailyNote('');
+      };
+
+      const exportToExcel = () => {
+        const dates = Object.keys(trackedData).sort();
+        let csvContent = "Date,Work Day,Flex Day,Net Worth,Emergency Fund,LISA,ISA,SIPP,GIA,Credit Card,Mortgage,Distance from Target,Task 1,Task 1 Time,Task 1 Note,Task 11,Task 11 Time,Task 11 Note,Task 3,Task 3 Time,Task 3 Note,Task 2,Task 2 Time,Task 2 Note,Total Time,Overtime,Daily Note,All Complete\n";
+        dates.forEach(date => {
+          const data = trackedData[date];
+          const workDay = isWorkDay(date);
+          const targetTime = workDay ? 360 : 0;
+          const totalTime = (data.time1 || 0) + (data.time2 || 0) + (data.time3 || 0) + (data.time11 || 0);
+          const overtime = workDay && totalTime > 348 ? totalTime - 348 : 0;
+          
+          const financeData = data.financeData;
+          const netWorth = financeData ? calculateNetValue(financeData) : '';
+          const distanceFromTarget = financeData && financeTarget ? netWorth - financeTarget : '';
+          
+          const row = [
+            date,
+            workDay ? 'Yes' : 'No',
+            data.flexDayOff ? 'Yes' : 'No',
+            netWorth,
+            financeData ? financeData.emergencyFund : '',
+            financeData ? financeData.lisa : '',
+            financeData ? financeData.isa : '',
+            financeData ? financeData.sipp : '',
+            financeData ? financeData.gia : '',
+            financeData ? financeData.creditCard : '',
+            financeData ? financeData.mortgage : '',
+            distanceFromTarget,
+            data.task1Complete ? 'Yes' : 'No',
+            data.time1 || 0,
+            `"${(data.note1 || '').replace(/"/g, '""')}"`,
+            data.task11Complete ? 'Yes' : 'No',
+            data.time11 || 0,
+            `"${(data.note11 || '').replace(/"/g, '""')}"`,
+            data.task3Complete ? 'Yes' : 'No',
+            data.time3 || 0,
+            `"${(data.note3 || '').replace(/"/g, '""')}"`,
+            data.task2Complete ? 'Yes' : 'No',
+            data.time2 || 0,
+            `"${(data.note2 || '').replace(/"/g, '""')}"`,
+            totalTime,
+            overtime,
+            `"${(data.dailyNote || '').replace(/"/g, '""')}"`,
+            isDayComplete(date) ? 'Yes' : 'No'
+          ];
+          csvContent += row.join(',') + '\n';
+        });
+
+        csvContent += `\nFlex Days Remaining,${getFlexDaysRemaining()}\n`;
+        csvContent += `Overtime Bank,${getOvertimeBank()} minutes\n`;
+        csvContent += `Finance Target,${financeTarget}\n`;
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `habit_tracker_360_${getLocalDateString()}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      const getStreak = () => {
+        let streak = 0;
+        let checkDate = new Date();
+        while (streak < 365) {
+          const dateStr = checkDate.toISOString().split('T')[0];
+          if (!isDayComplete(dateStr)) break;
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        }
+        return streak;
+      };
+
+      const changeDate = (days) => {
+        const date = new Date(selectedDate + 'T00:00:00');
+        date.setDate(date.getDate() + days);
+        setSelectedDate(getLocalDateString(date));
+      };
+
+      const goToToday = () => setSelectedDate(getLocalDateString());
+
+      const isUKPublicHoliday = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00');
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const year = date.getFullYear();
+        
+        const fixedHolidays = [
+          { month: 1, day: 1 },
+          { month: 12, day: 25 },
+          { month: 12, day: 26 }
+        ];
+        
+        for (const holiday of fixedHolidays) {
+          if (month === holiday.month && day === holiday.day) return true;
+        }
+        
+        if (year === 2025) {
+          const holidays2025 = [
+            '2025-04-18',
+            '2025-04-21',
+            '2025-05-05',
+            '2025-05-26',
+            '2025-08-25'
+          ];
+          if (holidays2025.includes(dateStr)) return true;
+        }
+        
+        if (year === 2026) {
+          const holidays2026 = [
+            '2026-04-03',
+            '2026-04-06',
+            '2026-05-04',
+            '2026-05-25',
+            '2026-08-31'
+          ];
+          if (holidays2026.includes(dateStr)) return true;
+        }
+        
+        return false;
+      };
+
+      const generateCalendarDays = () => {
+        const days = [];
+        const today = getLocalDateString();
+        const selected = new Date(selectedDate + 'T00:00:00');
+        
+        let currentDate = new Date(selected);
+        currentDate.setDate(currentDate.getDate() - 7);
+        
+        for (let i = 0; i < 16; i++) {
+          const dateStr = getLocalDateString(currentDate);
+          
+          const dayOfWeek = currentDate.getDay();
+          const isSunday = dayOfWeek === 0;
+          const isSaturday = dayOfWeek === 6;
+          const isPublicHoliday = isUKPublicHoliday(dateStr);
+          const isWeekendOrHoliday = isSaturday || isSunday || isPublicHoliday;
+          const specialDates = getSpecialDates(dateStr);
+          const hasSpecialDate = specialDates.length > 0 || isPublicHoliday;
+          const isFifth = isFifthDay(dateStr);
+          
+          days.push({
+            date: dateStr,
+            isComplete: isDayComplete(dateStr),
+            isSelected: dateStr === selectedDate,
+            isToday: dateStr === today,
+            display: currentDate.getDate(),
+            isWeekendOrHoliday: isWeekendOrHoliday,
+            hasSpecialDate: hasSpecialDate,
+            isFifthDay: isFifth,
+            isSunday: isSunday
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+        return days;
+      };
+
+      const getTaskCompletionOrder = (date) => {
+        const dateData = getDateData(date);
+        const taskTimes = [];
+        
+        [1, 2, 3, 11].forEach(id => {
+          const timeEntries = dateData[`timeEntries${id}`] || [];
+          const isComplete = dateData[`task${id}Complete`] || false;
+          let lastTime = null;
+          let sortPriority = 2;
+          
+          if (timeEntries.length > 0) {
+            const lastEntry = timeEntries[timeEntries.length - 1];
+            lastTime = lastEntry.end;
+            sortPriority = 0;
+          } else if (isComplete) {
+            lastTime = '99:99';
+            sortPriority = 1;
+          }
+          
+          taskTimes.push({ id, lastTime, sortPriority });
+        });
+        
+        taskTimes.sort((a, b) => {
+          if (a.sortPriority !== b.sortPriority) {
+            return a.sortPriority - b.sortPriority;
+          }
+          if (a.lastTime === null && b.lastTime === null) return 0;
+          if (a.lastTime === null) return 1;
+          if (b.lastTime === null) return -1;
+          return a.lastTime.localeCompare(b.lastTime);
+        });
+        
+        return taskTimes.map(t => t.id);
+      };
+
+      const generateMonthCalendar = () => {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        
+        const startDay = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+        
+        const weeks = [];
+        let currentWeek = [];
+        
+        for (let i = 0; i < startDay; i++) {
+          const prevMonthDay = new Date(year, month, -startDay + i + 1);
+          currentWeek.push({
+            date: getLocalDateString(prevMonthDay),
+            day: prevMonthDay.getDate(),
+            isCurrentMonth: false
+          });
+        }
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day);
+          const dateStr = getLocalDateString(date);
+          
+          currentWeek.push({
+            date: dateStr,
+            day: day,
+            isCurrentMonth: true,
+            isToday: dateStr === getLocalDateString(),
+            isComplete: isDayComplete(dateStr),
+            totalTime: getTotalTime(dateStr),
+            isWorkDay: isWorkDay(dateStr),
+            isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+            specialDates: getSpecialDates(dateStr),
+            isWeekend: date.getDay() === 0 || date.getDay() === 6,
+            isSunday: date.getDay() === 0,
+            isHoliday: isUKPublicHoliday(dateStr),
+            hasSpecialDate: getSpecialDates(dateStr).length > 0 || isUKPublicHoliday(dateStr),
+            isFifthDay: isFifthDay(dateStr)
+          });
+          
+          if (currentWeek.length === 7) {
+            weeks.push(currentWeek);
+            currentWeek = [];
+          }
+        }
+        
+        while (currentWeek.length > 0 && currentWeek.length < 7) {
+          const nextMonthDay = new Date(year, month + 1, currentWeek.length - (daysInMonth - lastDay.getDay() + startDay));
+          currentWeek.push({
+            date: getLocalDateString(nextMonthDay),
+            day: nextMonthDay.getDate(),
+            isCurrentMonth: false
+          });
+        }
+        
+        if (currentWeek.length > 0) {
+          weeks.push(currentWeek);
+        }
+        
+        return weeks;
+      };
+
+      const changeCalendarMonth = (months) => {
+        const newDate = new Date(calendarMonth);
+        newDate.setMonth(newDate.getMonth() + months);
+        setCalendarMonth(newDate);
+      };
+
+      const changeCalendarYear = (years) => {
+        const newDate = new Date(calendarMonth);
+        newDate.setFullYear(newDate.getFullYear() + years);
+        setCalendarMonth(newDate);
+      };
+
+      const goToCurrentMonth = () => {
+        setCalendarMonth(new Date());
+      };
+
+      const generateFullYear = (dateInYear) => {
+        const year = dateInYear.getFullYear();
+        const months = [];
+        
+        for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+          const month = new Date(year, monthIndex, 1);
+          const monthName = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          
+          const firstDay = new Date(year, monthIndex, 1);
+          const lastDay = new Date(year, monthIndex + 1, 0);
+          const startDay = firstDay.getDay();
+          const daysInMonth = lastDay.getDate();
+          
+          const weeks = [];
+          let currentWeek = [];
+          
+          for (let j = 0; j < startDay; j++) {
+            const prevMonthDay = new Date(year, monthIndex, -startDay + j + 1);
+            currentWeek.push({
+              date: getLocalDateString(prevMonthDay),
+              day: prevMonthDay.getDate(),
+              isCurrentMonth: false
+            });
+          }
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, monthIndex, day);
+            const dateStr = getLocalDateString(date);
+            
+            currentWeek.push({
+              date: dateStr,
+              day: day,
+              isCurrentMonth: true,
+              isToday: dateStr === getLocalDateString(),
+              isComplete: isDayComplete(dateStr),
+              totalTime: getTotalTime(dateStr),
+              isWorkDay: isWorkDay(dateStr),
+              isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+              specialDates: getSpecialDates(dateStr),
+              isWeekend: date.getDay() === 0 || date.getDay() === 6,
+              isSunday: date.getDay() === 0,
+              isHoliday: isUKPublicHoliday(dateStr),
+              hasSpecialDate: getSpecialDates(dateStr).length > 0 || isUKPublicHoliday(dateStr),
+              isFifthDay: isFifthDay(dateStr)
+            });
+            
+            if (currentWeek.length === 7) {
+              weeks.push(currentWeek);
+              currentWeek = [];
+            }
+          }
+          
+          while (currentWeek.length > 0 && currentWeek.length < 7) {
+            const nextMonthDay = new Date(year, monthIndex + 1, currentWeek.length - (daysInMonth - lastDay.getDay() + startDay));
+            currentWeek.push({
+              date: getLocalDateString(nextMonthDay),
+              day: nextMonthDay.getDate(),
+              isCurrentMonth: false
+            });
+          }
+          
+          if (currentWeek.length > 0) {
+            weeks.push(currentWeek);
+          }
+          
+          months.push({
+            year: year,
+            monthIndex: monthIndex,
+            monthName: monthName,
+            weeks: weeks
+          });
+        }
+        
+        return months;
+      };
+
+      const generateMultipleMonths = (centerMonth, monthsBefore = 2, monthsAfter = 3) => {
+        const months = [];
+        
+        for (let i = -monthsBefore; i <= monthsAfter; i++) {
+          const month = new Date(centerMonth);
+          month.setMonth(month.getMonth() + i);
+          
+          const year = month.getFullYear();
+          const monthIndex = month.getMonth();
+          const monthName = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          
+          const firstDay = new Date(year, monthIndex, 1);
+          const lastDay = new Date(year, monthIndex + 1, 0);
+          const startDay = firstDay.getDay();
+          const daysInMonth = lastDay.getDate();
+          
+          const weeks = [];
+          let currentWeek = [];
+          
+          for (let j = 0; j < startDay; j++) {
+            const prevMonthDay = new Date(year, monthIndex, -startDay + j + 1);
+            currentWeek.push({
+              date: getLocalDateString(prevMonthDay),
+              day: prevMonthDay.getDate(),
+              isCurrentMonth: false
+            });
+          }
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, monthIndex, day);
+            const dateStr = getLocalDateString(date);
+            
+            currentWeek.push({
+              date: dateStr,
+              day: day,
+              isCurrentMonth: true,
+              isToday: dateStr === getLocalDateString(),
+              isComplete: isDayComplete(dateStr),
+              totalTime: getTotalTime(dateStr),
+              isWorkDay: isWorkDay(dateStr),
+              isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+              specialDates: getSpecialDates(dateStr),
+              isWeekend: date.getDay() === 0 || date.getDay() === 6,
+              isSunday: date.getDay() === 0,
+              isHoliday: isUKPublicHoliday(dateStr),
+              hasSpecialDate: getSpecialDates(dateStr).length > 0 || isUKPublicHoliday(dateStr),
+              isFifthDay: isFifthDay(dateStr)
+            });
+            
+            if (currentWeek.length === 7) {
+              weeks.push(currentWeek);
+              currentWeek = [];
+            }
+          }
+          
+          while (currentWeek.length > 0 && currentWeek.length < 7) {
+            const nextMonthDay = new Date(year, monthIndex + 1, currentWeek.length - (daysInMonth - lastDay.getDay() + startDay));
+            currentWeek.push({
+              date: getLocalDateString(nextMonthDay),
+              day: nextMonthDay.getDate(),
+              isCurrentMonth: false
+            });
+          }
+          
+          if (currentWeek.length > 0) {
+            weeks.push(currentWeek);
+          }
+          
+          months.push({
+            monthName,
+            year,
+            monthIndex,
+            weeks
+          });
+        }
+        
+        return months;
+      };
+
+      // Navigation component
+      const Navigation = () => (
+        <div className="flex gap-1">
+          {viewMode !== 'goals' && (
+            <button onClick={() => setViewMode('goals')} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(200, 64, 82)'}} title="Goals">
+              <Target className="w-3 h-3" />
+            </button>
+          )}
+          {viewMode !== 'calendar' && (
+            <button onClick={() => setViewMode('calendar')} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(210, 174, 68)'}} title="Calendar">
+              <Grid className="w-3 h-3" />
+            </button>
+          )}
+          {viewMode !== 'day' && (
+            <button onClick={() => setViewMode('day')} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(182, 135, 50)'}} title="Today">
+              <Home className="w-3 h-3" />
+            </button>
+          )}
+          {viewMode !== 'books' && (
+            <button onClick={() => setViewMode('books')} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(73, 150, 164)'}} title="LTR">
+              <Book className="w-3 h-3" />
+            </button>
+          )}
+          {viewMode !== 'december' && (
+            <button onClick={() => setViewMode('december')} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(56, 112, 185)'}} title="December List">
+              <ClipboardList className="w-3 h-3" />
+            </button>
+          )}
+          <button onClick={exportToExcel} className="p-1 text-white rounded" style={{backgroundColor: 'rgb(30, 73, 160)'}} title="Export">
+            <Download className="w-3 h-3" />
+          </button>
+        </div>
+      );
+
+      if (viewMode === 'goals') {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-2">
+            <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-xl font-bold text-gray-800">Goals</h1>
+                <Navigation />
+              </div>
+
+              <div className="space-y-3">
+                {Object.keys(goals).map(goalKey => {
+                  const goal = goals[goalKey];
+                  const isEditing = editingGoal === goalKey;
+                  
+                  return (
+                    <div key={goalKey} className="border rounded-lg p-3 bg-gray-50">
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => setGoals(prev => ({
+                            ...prev, 
+                            [goalKey]: {
+                              ...prev[goalKey],
+                              complete: !prev[goalKey].complete,
+                              completionDate: !prev[goalKey].complete ? getLocalDateString() : prev[goalKey].completionDate
+                            }
+                          }))}
+                          className="flex-shrink-0 mt-1"
+                        >
+                          {goal.complete ? (
+                            <CheckCircle className="w-8 h-8 text-[rgb(23,115,81)]" />
+                          ) : (
+                            <Circle className="w-8 h-8 text-gray-300" />
+                          )}
+                        </button>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-lg font-semibold ${goal.complete ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                              {goalKey}
+                            </span>
+                            {!isEditing && (
+                              <button
+                                onClick={() => setEditingGoal(goalKey)}
+                                className="px-2 py-1 bg-[rgb(30,73,160)] text-white text-xs rounded"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                          
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                placeholder="Add note..."
+                                value={goal.note}
+                                onChange={(e) => setGoals(prev => ({
+                                  ...prev,
+                                  [goalKey]: { ...prev[goalKey], note: e.target.value }
+                                }))}
+                                className="w-full px-2 py-1 text-sm border rounded"
+                              />
+                              <input
+                                type="date"
+                                value={goal.completionDate}
+                                onChange={(e) => setGoals(prev => ({
+                                  ...prev,
+                                  [goalKey]: { ...prev[goalKey], completionDate: e.target.value }
+                                }))}
+                                className="w-full px-2 py-1 text-sm border rounded"
+                              />
+                              <button
+                                onClick={() => setEditingGoal(null)}
+                                className="w-full px-2 py-1 bg-[rgb(23,115,81)] text-white text-sm rounded"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              {goal.note && (
+                                <p className="text-sm text-gray-600 italic mb-1">"{goal.note}"</p>
+                              )}
+                              {goal.completionDate && (
+                                <p className="text-xs text-gray-500">
+                                  {goal.complete ? 'Completed: ' : 'Target: '}
+                                  {new Date(goal.completionDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (viewMode === 'books') {
+        const bookArray = Object.values(books);
+        const filteredBooks = bookArray.filter(book => {
+          if (booksFilter === 'all') return true;
+          if (booksFilter === 'read') return book.complete;
+          if (booksFilter === 'unread') return !book.complete;
+          return true;
+        });
+        
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-2">
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">LTR</h1>
+                  <p className="text-sm text-gray-600">{bookArray.filter(b => b.complete).length} / {bookArray.length} read</p>
+                </div>
+                <Navigation />
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setBooksFilter('unread')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${booksFilter === 'unread' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Unread
+                </button>
+                <button
+                  onClick={() => setBooksFilter('all')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${booksFilter === 'all' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setBooksFilter('read')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${booksFilter === 'read' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Read
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowAddBook(true)}
+                className="w-full mb-4 px-3 py-2 bg-[rgb(23,115,81)] text-white rounded font-semibold flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add Book
+              </button>
+
+              {showAddBook && (
+                <div className="mb-4 p-3 border rounded-lg bg-blue-50">
+                  <input
+                    type="text"
+                    placeholder="Book title..."
+                    value={newBookTitle}
+                    onChange={(e) => setNewBookTitle(e.target.value)}
+                    className="w-full px-2 py-2 text-sm border rounded mb-2"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Author..."
+                    value={newBookAuthor}
+                    onChange={(e) => setNewBookAuthor(e.target.value)}
+                    className="w-full px-2 py-2 text-sm border rounded mb-2"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (newBookTitle.trim()) {
+                          const bookId = Date.now().toString();
+                          setBooks(prev => ({
+                            ...prev,
+                            [bookId]: {
+                              title: newBookTitle.trim(),
+                              author: newBookAuthor.trim(),
+                              complete: false,
+                              completionDate: ''
+                            }
+                          }));
+                          setNewBookTitle('');
+                          setNewBookAuthor('');
+                          setShowAddBook(false);
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 bg-[rgb(23,115,81)] text-white text-sm rounded"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddBook(false);
+                        setNewBookTitle('');
+                        setNewBookAuthor('');
+                      }}
+                      className="flex-1 px-3 py-2 bg-gray-400 text-white text-sm rounded"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                {filteredBooks.map(book => {
+                  const bookId = Object.keys(books).find(key => books[key].title === book.title && books[key].author === book.author);
+                  const isEditing = editingBook === bookId;
+                  
+                  return (
+                    <div key={bookId} className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded border">
+                      <button
+                        onClick={() => setBooks(prev => ({
+                          ...prev,
+                          [bookId]: {
+                            ...prev[bookId],
+                            complete: !prev[bookId].complete,
+                            completionDate: !prev[bookId].complete ? getLocalDateString() : prev[bookId].completionDate
+                          }
+                        }))}
+                        className="flex-shrink-0 mt-0.5"
+                      >
+                        {book.complete ? (
+                          <CheckCircle className="w-5 h-5 text-[rgb(23,115,81)]" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-gray-300" />
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={book.title}
+                              onChange={(e) => setBooks(prev => ({
+                                ...prev,
+                                [bookId]: { ...prev[bookId], title: e.target.value }
+                              }))}
+                              className="w-full px-2 py-1 text-sm border rounded"
+                            />
+                            <input
+                              type="text"
+                              value={book.author}
+                              onChange={(e) => setBooks(prev => ({
+                                ...prev,
+                                [bookId]: { ...prev[bookId], author: e.target.value }
+                              }))}
+                              className="w-full px-2 py-1 text-xs border rounded"
+                            />
+                            <input
+                              type="date"
+                              value={book.completionDate}
+                              onChange={(e) => setBooks(prev => ({
+                                ...prev,
+                                [bookId]: { ...prev[bookId], completionDate: e.target.value }
+                              }))}
+                              className="w-full px-2 py-1 text-xs border rounded"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setEditingBook(null)}
+                                className="flex-1 px-2 py-1 bg-[rgb(23,115,81)] text-white text-xs rounded"
+                              >
+                                Done
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const newBooks = { ...books };
+                                  delete newBooks[bookId];
+                                  setBooks(newBooks);
+                                  setEditingBook(null);
+                                }}
+                                className="flex-1 px-2 py-1 bg-[rgb(200,64,82)] text-white text-xs rounded"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className={`text-sm font-medium ${book.complete ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                              {book.title}
+                            </div>
+                            <div className="text-xs text-gray-500">{book.author}</div>
+                            {book.completionDate && (
+                              <div className="text-xs text-gray-400">
+                                Read: {new Date(book.completionDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {!isEditing && (
+                        <button
+                          onClick={() => setEditingBook(bookId)}
+                          className="px-2 py-1 bg-[rgb(30,73,160)] text-white text-xs rounded"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (viewMode === 'december') {
+        const filteredTasks = decemberTasks.filter(task => {
+          if (decemberFilter === 'all') return true;
+          if (decemberFilter === 'complete') return task.complete;
+          if (decemberFilter === 'incomplete') return !task.complete;
+          return true;
+        });
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-2">
+            <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">December List</h1>
+                  <p className="text-sm text-gray-600">{decemberTasks.filter(t => t.complete).length} / {decemberTasks.length} complete</p>
+                </div>
+                <Navigation />
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setDecemberFilter('incomplete')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${decemberFilter === 'incomplete' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Incomplete
+                </button>
+                <button
+                  onClick={() => setDecemberFilter('all')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${decemberFilter === 'all' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setDecemberFilter('complete')}
+                  className={`flex-1 px-3 py-2 text-sm rounded font-semibold ${decemberFilter === 'complete' ? 'bg-[rgb(30,73,160)] text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Complete
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowAddDecemberTask(true)}
+                className="w-full mb-4 px-3 py-2 bg-[rgb(23,115,81)] text-white rounded font-semibold flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add Task
+              </button>
+
+              {showAddDecemberTask && (
+                <div className="mb-4 p-3 border rounded-lg bg-teal-50">
+                  <input
+                    type="text"
+                    placeholder="New task..."
+                    value={newDecemberTask}
+                    onChange={(e) => setNewDecemberTask(e.target.value)}
+                    className="w-full px-2 py-2 text-sm border rounded mb-2"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (newDecemberTask.trim()) {
+                          setDecemberTasks(prev => [...prev, {
+                            id: Date.now().toString(),
+                            text: newDecemberTask.trim(),
+                            complete: false,
+                            note: '',
+                            completionDate: ''
+                          }]);
+                          setNewDecemberTask('');
+                          setShowAddDecemberTask(false);
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 bg-[rgb(23,115,81)] text-white text-sm rounded"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddDecemberTask(false);
+                        setNewDecemberTask('');
+                      }}
+                      className="flex-1 px-3 py-2 bg-gray-400 text-white text-sm rounded"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                {filteredTasks.map(task => (
+                  <div key={task.id} className="border rounded-lg p-3 bg-gray-50">
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={() => setDecemberTasks(prev => prev.map(t => 
+                          t.id === task.id 
+                            ? { ...t, complete: !t.complete, completionDate: !t.complete ? getLocalDateString() : t.completionDate }
+                            : t
+                        ))}
+                        className="flex-shrink-0 mt-1"
+                      >
+                        {task.complete ? (
+                          <CheckCircle className="w-6 h-6 text-[rgb(23,115,81)]" />
+                        ) : (
+                          <Circle className="w-6 h-6 text-gray-300" />
+                        )}
+                      </button>
+                      <div className="flex-1">
+                        <div className={`text-sm font-medium mb-2 ${task.complete ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                          {task.text}
+                        </div>
+                        
+                        <input
+                          type="text"
+                          placeholder="Add note..."
+                          value={task.note}
+                          onChange={(e) => setDecemberTasks(prev => prev.map(t =>
+                            t.id === task.id ? { ...t, note: e.target.value } : t
+                          ))}
+                          className="w-full px-2 py-1 text-xs border rounded mb-2"
+                        />
+                        
+                        <input
+                          type="date"
+                          value={task.completionDate}
+                          onChange={(e) => setDecemberTasks(prev => prev.map(t =>
+                            t.id === task.id ? { ...t, completionDate: e.target.value } : t
+                          ))}
+                          className="w-full px-2 py-1 text-xs border rounded mb-2"
+                        />
+
+                        <button
+                          onClick={() => setDecemberTasks(prev => prev.filter(t => t.id !== task.id))}
+                          className="w-full px-2 py-1 bg-[rgb(200,64,82)] text-white text-xs rounded"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (viewMode === 'calendar') {
+        const months = generateFullYear(calendarMonth);
+        const currentYear = calendarMonth.getFullYear();
+        
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-2">
+            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-3">
+              <div className="flex items-center justify-between mb-3">
+                <h1 className="text-lg font-bold text-gray-800">Four444 Calendar</h1>
+                <Navigation />
+              </div>
+
+              <div className="flex items-center justify-between text-xs mb-3">
+                <div className="flex items-center gap-2 text-[rgb(30,73,160)]">
+                  <TrendingUp className="w-3 h-3" />
+                  <span className="font-bold">{getStreak()}d streak</span>
+                </div>
+                <div className="flex items-center gap-2 text-purple-600">
+                  <span className="font-bold">💼 {getFlexDaysRemaining()} flex days</span>
+                </div>
+                <div className="text-gray-600">
+                  <span className="font-bold">{getOvertimeBank()}m</span> overtime
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between bg-[rgb(56,112,185)] bg-opacity-20 rounded p-2 mb-3">
+                <button onClick={() => changeCalendarYear(-1)} className="p-1">
+                  <ChevronLeft className="w-5 h-5 text-[rgb(30,73,160)]" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">{currentYear}</span>
+                  <button onClick={goToCurrentMonth} className="px-2 py-1 bg-[rgb(30,73,160)] text-white text-xs rounded">
+                    Today
+                  </button>
+                </div>
+                <button onClick={() => changeCalendarYear(1)} className="p-1">
+                  <ChevronRight className="w-5 h-5 text-[rgb(30,73,160)]" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+                {months.map((monthData, monthIdx) => (
+                  <div key={`${monthData.year}-${monthData.monthIndex}`} className="mb-6">
+                    <div className="text-center mb-2">
+                      <span className="text-sm font-semibold">{monthData.monthName}</span>
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1 mb-1">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-1">
+                      {monthData.weeks.map((week, weekIdx) => (
+                        <div key={weekIdx} className="grid grid-cols-7 gap-1">
+                          {week.map((dayInfo, dayIdx) => {
+                            let bgColor = 'bg-gray-100';
+                            let textColor = 'text-gray-400';
+                            let borderColor = '';
+                            
+                            if (dayInfo.isCurrentMonth) {
+                              textColor = 'text-gray-800';
+                              
+                              // Fifth day on Sunday gets orange box
+                              if (dayInfo.isFifthDay && dayInfo.isSunday) {
+                                bgColor = 'bg-[rgb(255,140,0)]';
+                                textColor = 'text-white';
+                              } else if (dayInfo.hasSpecialDate) {
+                                bgColor = 'bg-[rgb(210,174,68)]';
+                                textColor = 'text-black';
+                              } else if (dayInfo.isFlexDay) {
+                                bgColor = 'bg-[rgb(56,112,185)]';
+                                textColor = dayInfo.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-gray-800';
+                              } else if (dayInfo.isWorkDay) {
+                                if (dayInfo.isComplete) {
+                                  bgColor = 'bg-[rgb(23,115,81)]';
+                                  textColor = dayInfo.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-gray-800';
+                                } else {
+                                  const today = new Date(getLocalDateString() + 'T00:00:00');
+                                  const cellDate = new Date(dayInfo.date + 'T00:00:00');
+                                  if (cellDate < today) {
+                                    bgColor = 'bg-[rgb(200,64,82)]';
+                                    textColor = dayInfo.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-gray-800';
+                                  } else {
+                                    bgColor = 'bg-white';
+                                  }
+                                }
+                              } else {
+                                bgColor = 'bg-gray-50';
+                              }
+                              
+                              if (dayInfo.isToday) {
+                                borderColor = 'ring-2 ring-[rgb(30,73,160)]';
+                              }
+                            }
+                            
+                            return (
+                              <div
+                                key={dayIdx}
+                                onClick={() => {
+                                  if (dayInfo.isCurrentMonth) {
+                                    setSelectedDate(dayInfo.date);
+                                    setViewMode('day');
+                                  }
+                                }}
+                                className={`${bgColor} ${textColor} ${borderColor} rounded p-2 cursor-pointer hover:opacity-80 transition-opacity min-h-[80px] relative`}
+                              >
+                                <div className="flex items-start justify-between mb-1">
+                                  <div className="text-sm font-semibold">{dayInfo.day}</div>
+                                  {dayInfo.isCurrentMonth && dayInfo.isFifthDay && (
+                                    <div className="text-[9px] font-bold text-[rgb(255,140,0)] bg-white bg-opacity-70 rounded px-1">
+                                      {dayInfo.isSunday ? 'Race/Fast' : 'Fast day'}
+                                    </div>
+                                  )}
+                                </div>
+                                {dayInfo.isCurrentMonth && dayInfo.isWorkDay && (
+                                  <div className="text-xs">
+                                    <div className={`font-mono ${dayInfo.totalTime >= 360 ? 'text-[rgb(23,115,81)]' : 'text-gray-600'}`}>
+                                      {dayInfo.totalTime}m
+                                    </div>
+                                  </div>
+                                )}
+                                {dayInfo.isCurrentMonth && dayInfo.specialDates && dayInfo.specialDates.length > 0 && (
+                                  <div className="text-xs mt-1">
+                                    {dayInfo.specialDates[0].split(' ')[0]}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 flex gap-3 text-xs flex-wrap">
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-[rgb(23,115,81)] rounded"></div>
+                  <span>Complete</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-[rgb(200,64,82)] rounded"></div>
+                  <span>Incomplete</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-[rgb(56,112,185)] rounded"></div>
+                  <span>Flex Day</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-[rgb(210,174,68)] rounded"></div>
+                  <span>Special Date</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-[rgb(255,140,0)] rounded"></div>
+                  <span>Race/Fast day</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-white border border-gray-300 rounded flex items-center justify-center">
+                    <span className="text-[9px] font-bold text-[rgb(255,140,0)]">Fast</span>
+                  </div>
+                  <span>Fast day (5th cycle)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const completedToday = habits.filter(h => isHabitComplete(h.id, selectedDate)).length;
+      const totalTime = getTotalTime(selectedDate);
+      const targetTime = isWorkDay(selectedDate) ? 360 : 0;
+      const timeComplete = totalTime >= targetTime;
+      const calendarDays = generateCalendarDays();
+      const isToday = selectedDate === getLocalDateString();
+      const selectedDateObj = new Date(selectedDate + 'T00:00:00');
+      const todayDateObj = new Date(getLocalDateString() + 'T00:00:00');
+      const isPastDate = selectedDateObj < todayDateObj;
+      const isFutureDate = selectedDateObj > todayDateObj;
+      
+      let displayHabits;
+      if (isToday) {
+        displayHabits = sortedHabits;
+      } else if (isPastDate) {
+        const completionOrder = getTaskCompletionOrder(selectedDate);
+        displayHabits = [...habits].sort((a, b) => {
+          return completionOrder.indexOf(a.id) - completionOrder.indexOf(b.id);
+        });
+      } else {
+        displayHabits = habits;
+      }
+      
+      const dailyHabits = displayHabits.filter(h => h.type === 'daily');
+      
+      const allDailyComplete = dailyHabits.every(h => isHabitComplete(h.id, selectedDate));
+      
+      let visibleHabits;
+      if (isToday) {
+        const incompleteDailyHabits = dailyHabits.filter(h => !isHabitComplete(h.id, selectedDate));
+        visibleHabits = incompleteDailyHabits.length > 0 ? incompleteDailyHabits : dailyHabits;
+      } else {
+        visibleHabits = dailyHabits;
+      }
+      
+      const isWorkDaySelected = isWorkDay(selectedDate);
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-1">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex gap-1">
+              {isToday && (
+                <div className="flex flex-col flex-shrink-0 self-stretch">
+                  {Array.from({ length: 36 }).map((_, index) => {
+                    const isPast = index < currentTimeBlock;
+                    const isCurrent = index === currentTimeBlock;
+                    const hours = Math.floor(index * 40 / 60);
+                    const minutes = (index * 40) % 60;
+                    const timeLabel = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    return (
+                      <div
+                        key={index}
+                        className={`w-9 flex-1 rounded-sm ${isPast ? 'bg-[rgb(200,64,82)]' : 'bg-[rgb(23,115,81)]'} ${isCurrent ? 'ring-1 ring-[rgb(30,73,160)]' : ''} flex items-center justify-center text-white text-[8px] font-mono`}
+                      >
+                        {timeLabel}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0 bg-white rounded-lg shadow-lg p-1.5 flex flex-col">
+                {showFinanceModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-bold text-gray-800">Finance Tracker</h2>
+                        <button
+                          onClick={() => {
+                            setShowFinanceModal(false);
+                            setCurrentFinanceData({
+                              emergencyFund: '',
+                              lisa: '',
+                              isa: '',
+                              sipp: '',
+                              gia: '',
+                              creditCard: '',
+                              mortgage: ''
+                            });
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded"
+                        >
+                          <X className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </div>
+                      
+                      <div className="mb-2 text-center bg-blue-50 rounded p-2">
+                        <div className="text-xs text-gray-600">Target</div>
+                        <div className="text-lg font-bold text-[rgb(30,73,160)]">£{financeTarget.toLocaleString()}</div>
+                      </div>
+
+                      <div className="space-y-2 mb-3">
+                        <h3 className="text-sm font-bold text-[rgb(23,115,81)]">Assets</h3>
+                        
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">Emergency Fund (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.emergencyFund}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, emergencyFund: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">LISA (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.lisa}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, lisa: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">ISA (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.isa}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, isa: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">SIPP (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.sipp}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, sipp: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">GIA (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.gia}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, gia: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <h3 className="text-sm font-bold text-[rgb(200,64,82)]">Liabilities</h3>
+                        
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">Credit Card (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.creditCard}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, creditCard: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold mb-1">Mortgage (£)</label>
+                          <input
+                            type="number"
+                            value={currentFinanceData.mortgage}
+                            onChange={(e) => setCurrentFinanceData(prev => ({...prev, mortgage: e.target.value}))}
+                            className="w-full px-2 py-1 text-sm border rounded outline-none"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveFinanceData}
+                          className="flex-1 px-3 py-2 bg-[rgb(23,115,81)] text-white text-sm rounded font-semibold"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowFinanceModal(false);
+                            setCurrentFinanceData({
+                              emergencyFund: '',
+                              lisa: '',
+                              isa: '',
+                              sipp: '',
+                              gia: '',
+                              creditCard: '',
+                              mortgage: ''
+                            });
+                          }}
+                          className="flex-1 px-3 py-2 bg-gray-400 text-white text-sm rounded font-semibold"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-1">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <h1 className="text-sm font-bold text-gray-800">Four444</h1>
+                    <Navigation />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[9px]">
+                    {!isWorkDaySelected && (
+                      <div className="text-[rgb(56,112,185)] font-semibold">Day Off 🎉</div>
+                    )}
+                    <div className="flex items-center gap-1 text-[rgb(30,73,160)]">
+                      <TrendingUp className="w-2.5 h-2.5" />
+                      <span className="font-bold">{getStreak()}d</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-purple-600">
+                      <span className="font-bold">💼{getFlexDaysRemaining()}</span>
+                    </div>
+                  </div>
+                  <div className="mt-0.5">
+                    {isNaturalWorkDay(selectedDate) && !trackedData[selectedDate]?.flexDayOff && getFlexDaysRemaining() > 0 && (
+                      <button 
+                        onClick={toggleFlexDayOff}
+                        className="w-full text-[9px] bg-purple-100 hover:bg-purple-200 rounded p-0.5"
+                      >
+                        Use Flex Day
+                      </button>
+                    )}
+                    {trackedData[selectedDate]?.flexDayOff && (
+                      <button 
+                        onClick={toggleFlexDayOff}
+                        className="w-full text-[9px] bg-orange-100 hover:bg-orange-200 rounded p-0.5"
+                      >
+                        Cancel Flex Day
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-1.5 overflow-x-auto">
+                  <div className="flex gap-0.5 pb-0.5">
+                    {calendarDays.map((day) => {
+                      const dayDate = new Date(day.date + 'T00:00:00');
+                      const todayDate = new Date(getLocalDateString() + 'T00:00:00');
+                      const isPast = dayDate < todayDate;
+                      
+                      let boxClass, textClass;
+                      
+                      // Fifth day on Sunday gets orange box
+                      if (day.isFifthDay && day.isSunday) {
+                        boxClass = 'bg-[rgb(255,140,0)]';
+                        textClass = 'text-white';
+                      } else if (day.hasSpecialDate) {
+                        boxClass = 'bg-[rgb(210,174,68)]';
+                        textClass = 'text-black';
+                      } else if (day.isComplete) {
+                        boxClass = 'bg-[rgb(23,115,81)]';
+                        textClass = day.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-white';
+                      } else {
+                        boxClass = 'bg-[rgb(200,64,82)]';
+                        textClass = day.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-white';
+                      }
+                      
+                      let ringClass = '';
+                      if (day.isToday) {
+                        ringClass = 'ring-2 ring-[rgb(23,115,81)]';
+                      }
+                      
+                      return (
+                        <div 
+                          key={day.date} 
+                          onClick={() => setSelectedDate(day.date)} 
+                          className={`w-5 h-5 rounded cursor-pointer flex items-center justify-center text-[9px] font-medium ${ringClass} ${boxClass} ${textClass}`}
+                        >
+                          {day.display}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="mb-1.5 flex items-center justify-between bg-[rgb(56,112,185)] bg-opacity-20 rounded p-0.5">
+                  <button onClick={() => changeDate(-1)} className="p-0.5"><ChevronLeft className="w-3 h-3 text-[rgb(30,73,160)]" /></button>
+                  <div className="flex items-center gap-0.5">
+                    <Calendar className="w-2.5 h-2.5" />
+                    <span className="text-[9px] font-semibold">{new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    {!isToday && (<button onClick={goToToday} className="px-1 py-0.5 bg-[rgb(30,73,160)] text-white text-[8px] rounded">Now</button>)}
+                  </div>
+                  <button onClick={() => changeDate(1)} className="p-0.5"><ChevronRight className="w-3 h-3 text-[rgb(30,73,160)]" /></button>
+                </div>
+
+                {(() => {
+                  const activeGoal = getActiveFinanceGoal();
+                  
+                  return (
+                    <div className="mb-1.5">
+                      {activeGoal ? (
+                        <div className="bg-green-50 border border-green-200 rounded p-1">
+                          <div className="flex items-center justify-between">
+                            <div className={`text-[9px] font-semibold ${activeGoal.distance >= 0 ? 'text-[rgb(23,115,81)]' : 'text-[rgb(200,64,82)]'}`}>
+                              {activeGoal.distance >= 0 ? '+' : ''}£{activeGoal.distance.toLocaleString()} from target
+                            </div>
+                            <button onClick={openFinanceModal} className="px-2 py-1 bg-[rgb(30,73,160)] text-white text-[7px] rounded">
+                              Edit
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={openFinanceModal} className="w-full px-2 py-1 bg-green-100 hover:bg-green-200 text-green-800 text-[9px] rounded font-semibold">
+                          + Add Finance Data
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {getSpecialDates(selectedDate).length > 0 && (
+                  <div className="mb-1.5 bg-pink-50 border border-pink-200 rounded p-1">
+                    {getSpecialDates(selectedDate).map((specialDate, idx) => (
+                      <div key={idx} className="text-[9px] text-pink-800 font-medium">
+                        {specialDate}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isWorkDaySelected && (
+                  <div className="mb-1.5 bg-[rgb(56,112,185)] bg-opacity-20 rounded p-1">
+                    <div className="flex justify-between text-[9px] mb-0.5">
+                      <span className={timeComplete ? 'text-[rgb(23,115,81)] font-bold' : ''}>{360 - totalTime}m remaining</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
+                      <div className="bg-[rgb(30,73,160)] h-1 rounded-full" style={{ width: `${Math.max(0, Math.min(((360 - totalTime) / 360) * 100, 100))}%`, marginLeft: 'auto' }}></div>
+                    </div>
+                    {totalTime > 348 && (
+                      <div className="text-[8px] text-purple-600">
+                        +{totalTime - 348} m overtime ({348 - getOvertimeProgress()} minutes to next flex day)
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="mb-1.5">
+                  <div className="flex gap-0.5">
+                    <input type="text" placeholder="Daily note..." value={dailyNote} onChange={(e) => setDailyNote(e.target.value)} className="flex-1 px-1 py-0.5 text-[9px] border rounded outline-none" />
+                    <button onClick={updateDailyNote} className="px-1.5 py-0.5 rounded flex items-center justify-center" style={{ backgroundColor: 'rgb(242, 182, 4)' }}>
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </button>
+                  </div>
+                  {getDateData(selectedDate).dailyNote && (
+                    <div className="mt-0.5 bg-[rgb(56,112,185)] bg-opacity-20 rounded p-0.5">
+                      <div className="flex items-start gap-0.5">
+                        <div className="flex-1 text-[8px] italic">"{getDateData(selectedDate).dailyNote}"</div>
+                        <button onClick={editDailyNote} className="px-1 py-0.5 bg-[rgb(30,73,160)] text-white text-[7px] rounded">Edit</button>
+                        <button onClick={deleteDailyNote} className="px-1 py-0.5 bg-[rgb(200,64,82)] text-white text-[7px] rounded">Del</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {isWorkDaySelected ? (
+                  <div className="space-y-1.5 flex-1">
+                    {visibleHabits.map((habit, index) => {
+                      const complete = isHabitComplete(habit.id, selectedDate);
+                      const dateData = getDateData(selectedDate);
+                      const habitTime = dateData[`time${habit.id}`] || 0;
+                      const habitNote = dateData[`note${habit.id}`] || '';
+                      const isTimerRunning = timers[habit.id] || false;
+                      const timerElapsed = elapsedSeconds[habit.id] || 0;
+                      const canMoveUp = index > 0;
+                      const canMoveDown = index < visibleHabits.length - 1;
+
+                      return (
+                        <div key={habit.id} className="border rounded p-1">
+                          <div className="flex items-start gap-1">
+                            <div className="mt-0.5">{complete ? <CheckCircle className="w-3 h-3 text-[rgb(23,115,81)]" /> : <Circle className="w-3 h-3 text-gray-300" />}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5">
+                                {editingTaskName === habit.id ? (
+                                  <div className="flex items-center gap-0.5 flex-1">
+                                    <input
+                                      type="text"
+                                      value={tempTaskName}
+                                      onChange={(e) => setTempTaskName(e.target.value)}
+                                      className="flex-1 px-1 py-0.5 text-[10px] border rounded outline-none"
+                                      autoFocus
+                                      onKeyPress={(e) => {
+                                        if (e.key === 'Enter') saveTaskName(habit.id);
+                                      }}
+                                    />
+                                    <button onClick={() => saveTaskName(habit.id)} className="px-1 py-0.5 bg-[rgb(23,115,81)] text-white text-[7px] rounded">✓</button>
+                                    <button onClick={cancelEditingTaskName} className="px-1 py-0.5 bg-gray-400 text-white text-[7px] rounded">✕</button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-1">
+                                      <h3 className="text-[10px] font-semibold">{getTaskDisplayName(habit.id)}</h3>
+                                      {(habit.id === 1 || habit.id === 11) && (
+                                        <button 
+                                          onClick={() => startEditingTaskName(habit.id)}
+                                          className="text-[8px] text-gray-500 hover:text-gray-700"
+                                        >
+                                          <Edit className="w-2.5 h-2.5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                    {isToday && (
+                                      <div className="flex gap-0.5">
+                                        <button 
+                                          onClick={() => moveTaskUp(habit.id)} 
+                                          disabled={!canMoveUp}
+                                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100"
+                                        >
+                                          <ChevronUp className="w-2.5 h-2.5 text-gray-600" />
+                                        </button>
+                                        <button 
+                                          onClick={() => moveTaskDown(habit.id)} 
+                                          disabled={!canMoveDown}
+                                          className="px-2 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-gray-100"
+                                        >
+                                          <ChevronDown className="w-2.5 h-2.5 text-gray-600" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                              
+                              <div className="mb-0.5">
+                                {!complete ? (
+                                  <button onClick={() => updateHabit(habit.id)} className="w-full px-1 py-0.5 bg-[rgb(30,73,160)] text-white text-[9px] rounded">Done</button>
+                                ) : (
+                                  <div className="flex gap-0.5">
+                                    <div className="flex-1 px-1 py-0.5 bg-[rgb(23,115,81)] bg-opacity-20 text-[rgb(23,115,81)] text-[9px] rounded text-center">✓ Complete</div>
+                                    <button onClick={() => deleteTask(habit.id)} className="px-1 py-0.5 bg-[rgb(200,64,82)] text-white text-[7px] rounded">Del</button>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="bg-purple-50 rounded p-0.5 mb-0.5">
+                                <div className="flex justify-between items-center mb-0.5">
+                                  <span className="text-[9px] font-mono font-bold text-purple-700">{formatTime(timerElapsed, habit.id)}</span>
+                                </div>
+                                <div className="flex gap-0.5">
+                                  {!isTimerRunning ? (
+                                    <button onClick={() => startTimer(habit.id)} className="flex-1 flex items-center justify-center px-0.5 py-0.5 bg-[rgb(23,115,81)] text-white rounded text-[8px]"><Play className="w-2 h-2" /></button>
+                                  ) : (
+                                    <button onClick={() => pauseTimer(habit.id)} className="flex-1 flex items-center justify-center px-0.5 py-0.5 bg-[rgb(182,135,50)] text-white rounded text-[8px]"><Pause className="w-2 h-2" /></button>
+                                  )}
+                                  <button onClick={() => stopTimer(habit.id)} disabled={timerElapsed === 0} className="flex-1 flex items-center justify-center px-0.5 py-0.5 bg-[rgb(200,64,82)] text-white rounded text-[8px] disabled:opacity-50"><Square className="w-2 h-2" /></button>
+                                </div>
+                              </div>
+
+                              <div className="bg-gray-50 rounded p-0.5 mb-0.5">
+                                <div className="text-[8px] mb-0.5">
+                                  <span className="font-medium">{habitTime}m</span>
+                                </div>
+                                {!complete && (
+                                  <div className="flex gap-0.5 mb-0.5">
+                                    <input type="time" value={currentStartTimes[habit.id] || ''} onChange={(e) => setCurrentStartTimes(prev => ({ ...prev, [habit.id]: e.target.value }))} className="flex-1 px-0.5 py-0.5 text-[8px] border rounded outline-none" />
+                                    <input type="time" value={currentEndTimes[habit.id] || ''} onChange={(e) => setCurrentEndTimes(prev => ({ ...prev, [habit.id]: e.target.value }))} className="flex-1 px-0.5 py-0.5 text-[8px] border rounded outline-none" />
+                                    <button onClick={() => updateTime(habit.id)} className="px-1 py-0.5 bg-gray-600 text-white text-[8px] rounded">+</button>
+                                  </div>
+                                )}
+                                {dateData[`timeEntries${habit.id}`] && dateData[`timeEntries${habit.id}`].length > 0 && (
+                                  <div className="space-y-0.5">
+                                    {dateData[`timeEntries${habit.id}`].map((entry, idx) => (
+                                      <div key={idx} className="flex items-center justify-between text-[7px] bg-white rounded px-0.5 py-0.5">
+                                        <span>{entry.start} - {entry.end} ({entry.minutes}m)</span>
+                                        {!complete && (
+                                          <button onClick={() => deleteTimeEntry(habit.id, idx)} className="px-1 py-0.5 bg-[rgb(200,64,82)] text-white rounded">×</button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="bg-amber-50 rounded p-0.5">
+                                {habitNote && (
+                                  <div className="mb-0.5 bg-white rounded p-0.5">
+                                    <div className="flex items-start gap-0.5">
+                                      <div className="flex-1 text-[8px] italic">"{habitNote}"</div>
+                                      {!complete && (
+                                        <div className="flex gap-0.5">
+                                          <button onClick={() => editNote(habit.id)} className="px-1 py-0.5 bg-[rgb(30,73,160)] text-white text-[7px] rounded">Edit</button>
+                                          <button onClick={() => deleteNote(habit.id)} className="px-1 py-0.5 bg-[rgb(200,64,82)] text-white text-[7px] rounded">Del</button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                {!complete && (
+                                  <div className="flex gap-0.5">
+                                    <input type="text" placeholder="Note..." value={currentNotes[habit.id] || ''} onChange={(e) => setCurrentNotes(prev => ({ ...prev, [habit.id]: e.target.value }))} className="flex-1 px-0.5 py-0.5 text-[8px] border rounded outline-none" />
+                                    <button onClick={() => updateNote(habit.id)} className="px-1.5 py-0.5 rounded flex items-center justify-center" style={{ backgroundColor: 'rgb(242, 182, 4)' }}>
+                                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="text-2xl">🎉</div>
+                    <h3 className="text-xs font-semibold text-gray-600">Day Off</h3>
+                  </div>
+                )}
+
+                {isWorkDaySelected && allDailyComplete && timeComplete && (
+                  <div className="mt-1.5 bg-[rgb(23,115,81)] bg-opacity-20 border border-[rgb(23,115,81)] rounded p-1 text-center">
+                    <div className="text-lg">🎉</div>
+                    <h3 className="text-[9px] font-bold text-[rgb(23,115,81)]">Daily Tasks Done!</h3>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<HabitTracker />, document.getElementById('root'));
+  </script>
+
+  <!-- Service Worker Registration for Offline Support -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('✅ Service Worker registered successfully');
+            console.log('📱 App will work offline after first load!');
+          })
+          .catch(error => {
+            console.log('⚠️ Service Worker registration failed:', error);
+            console.log('💡 Make sure to host these files on a server (not file://)');
+          });
+      });
+    }
+  </script>
+</body>
+</html>
