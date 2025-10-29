@@ -14,7 +14,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Four444">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>✓</text></svg>">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
 
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -67,6 +70,8 @@
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       };
+
+      const FIFTH_DAY_START = '2025-10-26';
 
       const [trackedData, setTrackedData] = useState(() => {
         try {
@@ -413,11 +418,50 @@
       };
 
       const isFifthDay = (dateStr) => {
-        return false; // Five day cycle removed
+        const start = new Date(FIFTH_DAY_START + 'T00:00:00');
+        const target = new Date(dateStr + 'T00:00:00');
+        
+        if (target < start) return false;
+        
+        let workDayCount = 0;
+        let current = new Date(start);
+        
+        while (current <= target) {
+          const dayOfWeek = current.getDay();
+          if (dayOfWeek !== 6) { // Exclude Saturdays
+            workDayCount++;
+            if (workDayCount % 5 === 0 && current.getTime() === target.getTime()) {
+              return true;
+            }
+          }
+          current.setDate(current.getDate() + 1);
+        }
+        
+        return false;
       };
 
       const getCycleDay = (dateStr) => {
-        return null; // Five day cycle removed
+        const start = new Date(FIFTH_DAY_START + 'T00:00:00');
+        const target = new Date(dateStr + 'T00:00:00');
+        
+        if (target < start) return null;
+        
+        const dayOfWeek = target.getDay();
+        if (dayOfWeek === 6) return null; // Saturdays are not in the cycle
+        
+        let workDayCount = 0;
+        let current = new Date(start);
+        
+        while (current <= target) {
+          const currentDayOfWeek = current.getDay();
+          if (currentDayOfWeek !== 6) { // Exclude Saturdays
+            workDayCount++;
+          }
+          current.setDate(current.getDate() + 1);
+        }
+        
+        const cyclePosition = ((workDayCount - 1) % 5) + 1;
+        return cyclePosition;
       };
 
       const startEditingTaskName = (habitId) => {
