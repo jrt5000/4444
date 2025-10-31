@@ -137,17 +137,43 @@
           const saved = localStorage.getItem('goals');
           if (saved) {
             const parsed = JSON.parse(saved);
+            
             // Migrate old goal names to new ones
-            if (parsed['£2MN'] && !parsed['PPCF']) {
-              parsed['PPCF'] = parsed['£2MN'];
-              delete parsed['£2MN'];
+            let updated = { ...parsed };
+            let needsUpdate = false;
+            
+            // Migrate P1PN to PPCF
+            if (updated['P1PN']) {
+              updated['PPCF'] = updated['P1PN'];
+              delete updated['P1PN'];
+              needsUpdate = true;
             }
-            if (parsed['R2SA'] && !parsed['PPCF']) {
-              parsed['PPCF'] = parsed['R2SA'];
-              delete parsed['R2SA'];
-              localStorage.setItem('goals', JSON.stringify(parsed));
+            
+            // Migrate R2SA to P12B
+            if (updated['R2SA']) {
+              updated['P12B'] = updated['R2SA'];
+              delete updated['R2SA'];
+              needsUpdate = true;
             }
-            return parsed;
+            
+            // Migrate £2MN to PPCF (older migration)
+            if (updated['£2MN']) {
+              updated['PPCF'] = updated['£2MN'];
+              delete updated['£2MN'];
+              needsUpdate = true;
+            }
+            
+            // Ensure all required goals exist
+            if (!updated['PPCF']) updated['PPCF'] = { complete: false, note: '', completionDate: '' };
+            if (!updated['P12B']) updated['P12B'] = { complete: false, note: '', completionDate: '' };
+            if (!updated['S3HM']) updated['S3HM'] = { complete: false, note: '', completionDate: '' };
+            if (!updated['1Q84']) updated['1Q84'] = { complete: false, note: '', completionDate: '' };
+            
+            if (needsUpdate) {
+              localStorage.setItem('goals', JSON.stringify(updated));
+            }
+            
+            return updated;
           }
           return {
             PPCF: { complete: false, note: '', completionDate: '' },
@@ -1337,7 +1363,7 @@
       };
 
       const habits = [
-        { id: 1, name: '10', baseCountdown: 360, type: 'daily' },
+        { id: 1, name: '10', baseCountdown: 400, type: 'daily' },
         { id: 11, name: '1', type: 'daily' },
         { id: 3, name: '1000', type: 'daily' },
         { id: 2, name: '100', type: 'daily' }
@@ -1731,7 +1757,7 @@
         
         const allHabitsComplete = requiredTasks.every(id => isHabitComplete(id, date));
         const totalTime = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
-        return allHabitsComplete && totalTime >= 360;
+        return allHabitsComplete && totalTime >= 400;
       };
 
       const getTotalTime = (date) => {
@@ -1739,27 +1765,20 @@
         return [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
       };
 
-      const getOvertimeBank = () => {
-        let totalOvertime = 0;
-        Object.keys(trackedData).forEach(date => {
-          if (isWorkDay(date)) {
-            const totalTime = getTotalTime(date);
-            if (totalTime > 348) {
-              totalOvertime += (totalTime - 348);
-            }
-          }
-        });
-        return totalOvertime;
-      };
-
       const getFlexDaysRemaining = () => {
-        const earned = Math.floor(getOvertimeBank() / 348);
-        const used = Object.keys(trackedData).filter(d => trackedData[d]?.flexDayOff).length;
-        return earned - used;
-      };
-
-      const getOvertimeProgress = () => {
-        return getOvertimeBank() % 348;
+        // Get current year
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        
+        // Count used flex days in current year only
+        const used = Object.keys(trackedData).filter(d => {
+          const date = new Date(d);
+          return date.getFullYear() === currentYear && trackedData[d]?.flexDayOff;
+        }).length;
+        
+        // 48 flex days per year
+        const allocated = 48;
+        return allocated - used;
       };
 
       const toggleFlexDayOff = () => {
@@ -1851,7 +1870,7 @@
         if (habitId === 3) {
           const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const timeOnTask3 = dateData.time3 || 0;
-          const baseCountdown = 360 - timeOnOtherTasks;
+          const baseCountdown = 400 - timeOnOtherTasks;
           const remaining = baseCountdown - timeOnTask3;
           
           if (remaining <= 0) {
@@ -1861,7 +1880,7 @@
           return remaining;
         } else {
           const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
-          const remaining = 360 - totalLoggedMinutes;
+          const remaining = 400 - totalLoggedMinutes;
           
           if (remaining <= 0) {
             return null;
@@ -1879,14 +1898,14 @@
         if (habitId === 3) {
           const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const timeOnTask3 = dateData.time3 || 0;
-          const baseCountdown = 360 - timeOnOtherTasks;
+          const baseCountdown = 400 - timeOnOtherTasks;
           const remainingMinutes = baseCountdown - timeOnTask3;
           const remainingSeconds = remainingMinutes * 60;
           displaySeconds = Math.max(0, remainingSeconds - seconds);
         } else {
           const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const totalLoggedSeconds = totalLoggedMinutes * 60;
-          const targetSeconds = 360 * 60;
+          const targetSeconds = 400 * 60;
           const totalElapsedSeconds = seconds + totalLoggedSeconds;
           const remaining = targetSeconds - totalElapsedSeconds;
           
@@ -1935,13 +1954,12 @@
 
       const exportToExcel = () => {
         const dates = Object.keys(trackedData).sort();
-        let csvContent = "Date,Work Day,Flex Day,Net Worth,Emergency Fund,LISA,ISA,SIPP,GIA,Credit Card,Mortgage,Distance from Target,Task 1,Task 1 Time,Task 1 Note,Task 11,Task 11 Time,Task 11 Note,Task 3,Task 3 Time,Task 3 Note,Task 2,Task 2 Time,Task 2 Note,Total Time,Overtime,Daily Note,All Complete\n";
+        let csvContent = "Date,Work Day,Flex Day,Net Worth,Emergency Fund,LISA,ISA,SIPP,GIA,Credit Card,Mortgage,Distance from Target,Task 1,Task 1 Time,Task 1 Note,Task 11,Task 11 Time,Task 11 Note,Task 3,Task 3 Time,Task 3 Note,Task 2,Task 2 Time,Task 2 Note,Total Time,Daily Note,All Complete\n";
         dates.forEach(date => {
           const data = trackedData[date];
           const workDay = isWorkDay(date);
-          const targetTime = workDay ? 360 : 0;
+          const targetTime = workDay ? 400 : 0;
           const totalTime = (data.time1 || 0) + (data.time2 || 0) + (data.time3 || 0) + (data.time11 || 0);
-          const overtime = workDay && totalTime > 348 ? totalTime - 348 : 0;
           
           const financeData = data.financeData;
           const netWorth = financeData ? calculateNetValue(financeData) : '';
@@ -1973,7 +1991,6 @@
             data.time2 || 0,
             `"${(data.note2 || '').replace(/"/g, '""')}"`,
             totalTime,
-            overtime,
             `"${(data.dailyNote || '').replace(/"/g, '""')}"`,
             isDayComplete(date) ? 'Yes' : 'No'
           ];
@@ -1981,7 +1998,6 @@
         });
 
         csvContent += `\nFlex Days Remaining,${getFlexDaysRemaining()}\n`;
-        csvContent += `Overtime Bank,${getOvertimeBank()} minutes\n`;
         csvContent += `Finance Target,${financeTarget}\n`;
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -2889,9 +2905,6 @@
                 <div className="flex items-center gap-2 text-purple-600">
                   <span className="font-bold">💼 {getFlexDaysRemaining()} flex days</span>
                 </div>
-                <div className="text-gray-600">
-                  <span className="font-bold">{getOvertimeBank()}m</span> overtime
-                </div>
               </div>
 
               <div className="flex items-center justify-between bg-[rgb(56,112,185)] bg-opacity-20 rounded p-2 mb-3">
@@ -2990,7 +3003,7 @@
                                 </div>
                                 {dayInfo.isCurrentMonth && dayInfo.isWorkDay && (
                                   <div className="text-xs">
-                                    <div className={`font-mono ${dayInfo.totalTime >= 360 ? 'text-[rgb(23,115,81)]' : 'text-gray-600'}`}>
+                                    <div className={`font-mono ${dayInfo.totalTime >= 400 ? 'text-[rgb(23,115,81)]' : 'text-gray-600'}`}>
                                       {dayInfo.totalTime}m
                                     </div>
                                   </div>
@@ -3376,16 +3389,11 @@
                 {isWorkDaySelected && (
                   <div className="mb-1.5 bg-[rgb(56,112,185)] bg-opacity-20 rounded p-1">
                     <div className="flex justify-between text-[9px] mb-0.5">
-                      <span className={timeComplete ? 'text-[rgb(23,115,81)] font-bold' : ''}>{360 - totalTime}m remaining</span>
+                      <span className={timeComplete ? 'text-[rgb(23,115,81)] font-bold' : ''}>{400 - totalTime}m remaining</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
-                      <div className="bg-[rgb(30,73,160)] h-1 rounded-full" style={{ width: `${Math.max(0, Math.min(((360 - totalTime) / 360) * 100, 100))}%`, marginLeft: 'auto' }}></div>
+                      <div className="bg-[rgb(30,73,160)] h-1 rounded-full" style={{ width: `${Math.max(0, Math.min(((400 - totalTime)  / 400) * 100, 100))}%`, marginLeft: 'auto' }}></div>
                     </div>
-                    {totalTime > 348 && (
-                      <div className="text-[8px] text-purple-600">
-                        +{totalTime - 348} m overtime ({348 - getOvertimeProgress()} minutes to next flex day)
-                      </div>
-                    )}
                   </div>
                 )}
 
