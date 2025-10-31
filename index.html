@@ -150,15 +150,15 @@
             return parsed;
           }
           return {
-            P1PN: { complete: false, note: '', completionDate: '' },
-            R2SA: { complete: false, note: '', completionDate: '' },
+            PPCF: { complete: false, note: '', completionDate: '' },
+            P12B: { complete: false, note: '', completionDate: '' },
             S3HM: { complete: false, note: '', completionDate: '' },
             '1Q84': { complete: false, note: '', completionDate: '' }
           };
         } catch (e) {
           return {
-            P1PN: { complete: false, note: '', completionDate: '' },
-            R2SA: { complete: false, note: '', completionDate: '' },
+            PPCF: { complete: false, note: '', completionDate: '' },
+            P12B: { complete: false, note: '', completionDate: '' },
             S3HM: { complete: false, note: '', completionDate: '' },
             '1Q84': { complete: false, note: '', completionDate: '' }
           };
@@ -1308,6 +1308,7 @@
       });
 
       const [booksFilter, setBooksFilter] = useState('unread');
+      const [bookSearchQuery, setBookSearchQuery] = useState('');
       const [decemberFilter, setDecemberFilter] = useState('incomplete');
       const [editingGoal, setEditingGoal] = useState(null);
       const [editingBook, setEditingBook] = useState(null);
@@ -1405,8 +1406,8 @@
       };
 
       const startEditingTaskName = (habitId) => {
-        // Task 1 (named "10") is not editable
-        if (habitId === 1) return;
+        // Only task 11 (named "1") is editable
+        if (habitId !== 11) return;
         
         setEditingTaskName(habitId);
         setTempTaskName(getTaskDisplayName(habitId));
@@ -1646,6 +1647,18 @@
         }, 1000);
         return () => clearInterval(interval);
       }, [timers, timerStartTimes]);
+
+      useEffect(() => {
+        if (viewMode === 'calendar') {
+          // Scroll to today's date when calendar view opens
+          setTimeout(() => {
+            const todayElement = document.getElementById('calendar-today');
+            if (todayElement) {
+              todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+        }
+      }, [viewMode]);
 
       const isWorkDay = (dateStr) => {
         if (trackedData[dateStr]?.flexDayOff) return false;
@@ -2488,9 +2501,18 @@
       if (viewMode === 'books') {
         const bookArray = Object.values(books);
         const filteredBooks = bookArray.filter(book => {
-          if (booksFilter === 'all') return true;
-          if (booksFilter === 'read') return book.complete;
-          if (booksFilter === 'unread') return !book.complete;
+          // Filter by read/unread status
+          if (booksFilter === 'read' && !book.complete) return false;
+          if (booksFilter === 'unread' && book.complete) return false;
+          
+          // Filter by search query
+          if (bookSearchQuery.trim()) {
+            const query = bookSearchQuery.toLowerCase();
+            const titleMatch = book.title.toLowerCase().includes(query);
+            const authorMatch = book.author.toLowerCase().includes(query);
+            return titleMatch || authorMatch;
+          }
+          
           return true;
         });
         
@@ -2524,6 +2546,16 @@
                 >
                   Read
                 </button>
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search books by title or author..."
+                  value={bookSearchQuery}
+                  onChange={(e) => setBookSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(30,73,160)]"
+                />
               </div>
 
               <button
@@ -2939,6 +2971,7 @@
                             return (
                               <div
                                 key={dayIdx}
+                                id={dayInfo.isToday ? 'calendar-today' : undefined}
                                 onClick={() => {
                                   if (dayInfo.isCurrentMonth) {
                                     setSelectedDate(dayInfo.date);
