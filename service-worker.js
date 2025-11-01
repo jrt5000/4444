@@ -1,4 +1,4 @@
-const CACHE_NAME = 'four444-offline-v19';
+const CACHE_NAME = 'four444-offline-v24';
 const urlsToCache = [
   './',
   './index.html',

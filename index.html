@@ -88,6 +88,15 @@
         }
       });
       
+      const [hiddenTasks, setHiddenTasks] = useState(() => {
+        try {
+          const saved = localStorage.getItem('hiddenTasks');
+          return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+          return [];
+        }
+      });
+      
       const [customTaskNames, setCustomTaskNames] = useState(() => {
         try {
           const saved = localStorage.getItem('customTaskNames');
@@ -1362,8 +1371,18 @@
         }
       };
 
+      const toggleTaskHidden = (habitId) => {
+        setHiddenTasks(prev => {
+          if (prev.includes(habitId)) {
+            return prev.filter(id => id !== habitId);
+          } else {
+            return [...prev, habitId];
+          }
+        });
+      };
+
       const habits = [
-        { id: 1, name: '10', baseCountdown: 400, type: 'daily' },
+        { id: 1, name: '10', baseCountdown: 300, type: 'daily' },
         { id: 11, name: '1', type: 'daily' },
         { id: 3, name: '1000', type: 'daily' },
         { id: 2, name: '100', type: 'daily' }
@@ -1374,14 +1393,14 @@
       });
 
       const getTaskDisplayName = (habitId, dateStr = selectedDate) => {
-        // Task 11 (named "1") uses daily names that refresh each day
-        if (habitId === 11) {
-          const dailyName = dailyTaskNames[dateStr];
+        // Tasks 1 (named "10") and 11 (named "1") use daily names that refresh each day
+        if (habitId === 1 || habitId === 11) {
+          const dailyName = dailyTaskNames[dateStr]?.[habitId];
           if (dailyName) return dailyName;
           return habits.find(h => h.id === habitId)?.name || '';
         }
-        // Other tasks use permanent custom names
-        return customTaskNames[habitId] || habits.find(h => h.id === habitId)?.name || '';
+        // Other tasks use fixed names
+        return habits.find(h => h.id === habitId)?.name || '';
       };
 
       const isFifthDay = (dateStr) => {
@@ -1390,16 +1409,14 @@
         
         if (target < start) return false;
         
-        let workDayCount = 0;
+        let dayCount = 0;
         let current = new Date(start);
         
         while (current <= target) {
-          const dayOfWeek = current.getDay();
-          if (dayOfWeek !== 6) { // Exclude Saturdays
-            workDayCount++;
-            if (workDayCount % 5 === 0 && current.getTime() === target.getTime()) {
-              return true;
-            }
+          // Count all days now (7 days training)
+          dayCount++;
+          if (dayCount % 5 === 0 && current.getTime() === target.getTime()) {
+            return true;
           }
           current.setDate(current.getDate() + 1);
         }
@@ -1432,8 +1449,8 @@
       };
 
       const startEditingTaskName = (habitId) => {
-        // Only task 11 (named "1") is editable
-        if (habitId !== 11) return;
+        // Only tasks 1 (named "10") and 11 (named "1") are editable
+        if (habitId !== 1 && habitId !== 11) return;
         
         setEditingTaskName(habitId);
         setTempTaskName(getTaskDisplayName(habitId));
@@ -1441,17 +1458,14 @@
 
       const saveTaskName = (habitId) => {
         if (tempTaskName.trim()) {
-          // Task 11 (named "1") saves to daily names (date-specific)
-          if (habitId === 11) {
+          // Tasks 1 and 11 save to daily names (date-specific)
+          if (habitId === 1 || habitId === 11) {
             setDailyTaskNames(prev => ({
               ...prev,
-              [selectedDate]: tempTaskName.trim()
-            }));
-          } else {
-            // Other tasks save to permanent custom names
-            setCustomTaskNames(prev => ({
-              ...prev,
-              [habitId]: tempTaskName.trim()
+              [selectedDate]: {
+                ...prev[selectedDate],
+                [habitId]: tempTaskName.trim()
+              }
             }));
           }
         }
@@ -1609,6 +1623,14 @@
 
       useEffect(() => {
         try {
+          localStorage.setItem('hiddenTasks', JSON.stringify(hiddenTasks));
+        } catch (e) {
+          console.error('Failed to save hidden tasks:', e);
+        }
+      }, [hiddenTasks]);
+
+      useEffect(() => {
+        try {
           localStorage.setItem('goals', JSON.stringify(goals));
         } catch (e) {
           console.error('Failed to save goals:', e);
@@ -1687,10 +1709,7 @@
       }, [viewMode]);
 
       const isWorkDay = (dateStr) => {
-        if (trackedData[dateStr]?.flexDayOff) return false;
-        const date = new Date(dateStr + 'T00:00:00');
-        const dayOfWeek = date.getDay();
-        if (dayOfWeek === 6) return false; // Saturday is not a work day
+        // All days are work days now
         return true;
       };
 
@@ -1757,39 +1776,12 @@
         
         const allHabitsComplete = requiredTasks.every(id => isHabitComplete(id, date));
         const totalTime = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
-        return allHabitsComplete && totalTime >= 400;
+        return allHabitsComplete && totalTime >= 300;
       };
 
       const getTotalTime = (date) => {
         const dateData = getDateData(date);
         return [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
-      };
-
-      const getFlexDaysRemaining = () => {
-        // Get current year
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        
-        // Count used flex days in current year only
-        const used = Object.keys(trackedData).filter(d => {
-          const date = new Date(d);
-          return date.getFullYear() === currentYear && trackedData[d]?.flexDayOff;
-        }).length;
-        
-        // 48 flex days per year
-        const allocated = 48;
-        return allocated - used;
-      };
-
-      const toggleFlexDayOff = () => {
-        const isCurrentlyFlex = trackedData[selectedDate]?.flexDayOff;
-        setTrackedData(prev => ({
-          ...prev,
-          [selectedDate]: {
-            ...prev[selectedDate],
-            flexDayOff: !isCurrentlyFlex
-          }
-        }));
       };
 
       const updateHabit = (habitId) => {
@@ -1870,7 +1862,7 @@
         if (habitId === 3) {
           const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const timeOnTask3 = dateData.time3 || 0;
-          const baseCountdown = 400 - timeOnOtherTasks;
+          const baseCountdown = 300 - timeOnOtherTasks;
           const remaining = baseCountdown - timeOnTask3;
           
           if (remaining <= 0) {
@@ -1880,7 +1872,7 @@
           return remaining;
         } else {
           const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
-          const remaining = 400 - totalLoggedMinutes;
+          const remaining = 300 - totalLoggedMinutes;
           
           if (remaining <= 0) {
             return null;
@@ -1898,14 +1890,14 @@
         if (habitId === 3) {
           const timeOnOtherTasks = [1, 2, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const timeOnTask3 = dateData.time3 || 0;
-          const baseCountdown = 400 - timeOnOtherTasks;
+          const baseCountdown = 300 - timeOnOtherTasks;
           const remainingMinutes = baseCountdown - timeOnTask3;
           const remainingSeconds = remainingMinutes * 60;
           displaySeconds = Math.max(0, remainingSeconds - seconds);
         } else {
           const totalLoggedMinutes = [1, 2, 3, 11].reduce((sum, id) => sum + (dateData[`time${id}`] || 0), 0);
           const totalLoggedSeconds = totalLoggedMinutes * 60;
-          const targetSeconds = 400 * 60;
+          const targetSeconds = 300 * 60;
           const totalElapsedSeconds = seconds + totalLoggedSeconds;
           const remaining = targetSeconds - totalElapsedSeconds;
           
@@ -1954,12 +1946,12 @@
 
       const exportToExcel = () => {
         const dates = Object.keys(trackedData).sort();
-        let csvContent = "Date,Work Day,Flex Day,Net Worth,Emergency Fund,LISA,ISA,SIPP,GIA,Credit Card,Mortgage,Distance from Target,Task 1,Task 1 Time,Task 1 Note,Task 11,Task 11 Time,Task 11 Note,Task 3,Task 3 Time,Task 3 Note,Task 2,Task 2 Time,Task 2 Note,Total Time,Daily Note,All Complete\n";
+        let csvContent = "Date,Work Day,Net Worth,Emergency Fund,LISA,ISA,SIPP,GIA,Credit Card,Mortgage,Distance from Target,Task 1,Task 1 Time,Task 1 Note,Task 11,Task 11 Time,Task 11 Note,Task 3,Task 3 Time,Task 3 Note,Task 2,Task 2 Time,Task 2 Note,Total Time,Daily Note,All Complete\n";
         dates.forEach(date => {
           const data = trackedData[date];
           const workDay = isWorkDay(date);
-          const targetTime = workDay ? 400 : 0;
-          const totalTime = (data.time1 || 0) + (data.time2 || 0) + (data.time3 || 0) + (data.time11 || 0);
+          const targetTime = workDay ? 300 : 0;
+          const totalTime = (data.time1 || 0) + (data.time11 || 0) + (data.time3 || 0) + (data.time2 || 0);
           
           const financeData = data.financeData;
           const netWorth = financeData ? calculateNetValue(financeData) : '';
@@ -1968,7 +1960,6 @@
           const row = [
             date,
             workDay ? 'Yes' : 'No',
-            data.flexDayOff ? 'Yes' : 'No',
             netWorth,
             financeData ? financeData.emergencyFund : '',
             financeData ? financeData.lisa : '',
@@ -1997,8 +1988,7 @@
           csvContent += row.join(',') + '\n';
         });
 
-        csvContent += `\nFlex Days Remaining,${getFlexDaysRemaining()}\n`;
-        csvContent += `Finance Target,${financeTarget}\n`;
+        csvContent += `\nFinance Target,${financeTarget}\n`;
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -2177,7 +2167,7 @@
             isComplete: isDayComplete(dateStr),
             totalTime: getTotalTime(dateStr),
             isWorkDay: isWorkDay(dateStr),
-            isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+            // isFlexDay removed
             specialDates: getSpecialDates(dateStr),
             isWeekend: date.getDay() === 0 || date.getDay() === 6,
             isSunday: date.getDay() === 0,
@@ -2261,7 +2251,7 @@
               isComplete: isDayComplete(dateStr),
               totalTime: getTotalTime(dateStr),
               isWorkDay: isWorkDay(dateStr),
-              isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+              // isFlexDay removed
               specialDates: getSpecialDates(dateStr),
               isWeekend: date.getDay() === 0 || date.getDay() === 6,
               isSunday: date.getDay() === 0,
@@ -2340,7 +2330,7 @@
               isComplete: isDayComplete(dateStr),
               totalTime: getTotalTime(dateStr),
               isWorkDay: isWorkDay(dateStr),
-              isFlexDay: trackedData[dateStr]?.flexDayOff || false,
+              // isFlexDay removed
               specialDates: getSpecialDates(dateStr),
               isWeekend: date.getDay() === 0 || date.getDay() === 6,
               isSunday: date.getDay() === 0,
@@ -2902,9 +2892,6 @@
                   <TrendingUp className="w-3 h-3" />
                   <span className="font-bold">{getStreak()}d streak</span>
                 </div>
-                <div className="flex items-center gap-2 text-purple-600">
-                  <span className="font-bold">💼 {getFlexDaysRemaining()} flex days</span>
-                </div>
               </div>
 
               <div className="flex items-center justify-between bg-[rgb(56,112,185)] bg-opacity-20 rounded p-2 mb-3">
@@ -2955,9 +2942,6 @@
                               } else if (dayInfo.hasSpecialDate) {
                                 bgColor = 'bg-[rgb(210,174,68)]';
                                 textColor = 'text-black';
-                              } else if (dayInfo.isFlexDay) {
-                                bgColor = 'bg-[rgb(56,112,185)]';
-                                textColor = dayInfo.isFifthDay ? 'text-[rgb(255,140,0)]' : 'text-gray-800';
                               } else if (dayInfo.isWorkDay) {
                                 if (dayInfo.isComplete) {
                                   bgColor = 'bg-[rgb(23,115,81)]';
@@ -3003,7 +2987,7 @@
                                 </div>
                                 {dayInfo.isCurrentMonth && dayInfo.isWorkDay && (
                                   <div className="text-xs">
-                                    <div className={`font-mono ${dayInfo.totalTime >= 400 ? 'text-[rgb(23,115,81)]' : 'text-gray-600'}`}>
+                                    <div className={`font-mono ${dayInfo.totalTime >= 300 ? 'text-[rgb(23,115,81)]' : 'text-gray-600'}`}>
                                       {dayInfo.totalTime}m
                                     </div>
                                   </div>
@@ -3275,27 +3259,6 @@
                       <TrendingUp className="w-2.5 h-2.5" />
                       <span className="font-bold">{getStreak()}d</span>
                     </div>
-                    <div className="flex items-center gap-1 text-purple-600">
-                      <span className="font-bold">💼{getFlexDaysRemaining()}</span>
-                    </div>
-                  </div>
-                  <div className="mt-0.5">
-                    {isNaturalWorkDay(selectedDate) && !trackedData[selectedDate]?.flexDayOff && getFlexDaysRemaining() > 0 && (
-                      <button 
-                        onClick={toggleFlexDayOff}
-                        className="w-full text-[9px] bg-purple-100 hover:bg-purple-200 rounded p-0.5"
-                      >
-                        Use Flex Day
-                      </button>
-                    )}
-                    {trackedData[selectedDate]?.flexDayOff && (
-                      <button 
-                        onClick={toggleFlexDayOff}
-                        className="w-full text-[9px] bg-orange-100 hover:bg-orange-200 rounded p-0.5"
-                      >
-                        Cancel Flex Day
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -3389,10 +3352,10 @@
                 {isWorkDaySelected && (
                   <div className="mb-1.5 bg-[rgb(56,112,185)] bg-opacity-20 rounded p-1">
                     <div className="flex justify-between text-[9px] mb-0.5">
-                      <span className={timeComplete ? 'text-[rgb(23,115,81)] font-bold' : ''}>{400 - totalTime}m remaining</span>
+                      <span className={timeComplete ? 'text-[rgb(23,115,81)] font-bold' : ''}>{300 - totalTime}m remaining</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-1 mb-1">
-                      <div className="bg-[rgb(30,73,160)] h-1 rounded-full" style={{ width: `${Math.max(0, Math.min(((400 - totalTime)  / 400) * 100, 100))}%`, marginLeft: 'auto' }}></div>
+                      <div className="bg-[rgb(30,73,160)] h-1 rounded-full" style={{ width: `${Math.max(0, Math.min(((300 - totalTime)   / 300) * 100, 100))}%`, marginLeft: 'auto' }}></div>
                     </div>
                   </div>
                 )}
@@ -3452,7 +3415,7 @@
                                   <>
                                     <div className="flex items-center gap-1">
                                       <h3 className="text-[10px] font-semibold">{getTaskDisplayName(habit.id)}</h3>
-                                      {habit.id === 11 && (
+                                      {(habit.id === 1 || habit.id === 11) && (
                                         <button 
                                           onClick={() => startEditingTaskName(habit.id)}
                                           className="text-[8px] text-gray-500 hover:text-gray-700"
